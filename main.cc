@@ -13,10 +13,6 @@
 #include <iostream>
 #include <limits>
 
-#include "target.hh"
-#include "sources/file_source.hh"
-#include "parser/csv.hh"
-
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/io.hpp>
 
@@ -24,6 +20,11 @@
 #include <osg/ShapeDrawable>
 #include <osg/Geometry>
 #include <osg/Vec3>
+
+#include "target.hh"
+#include "sources/file_source.hh"
+#include "parser/csv.hh"
+#include "cli/exhaustive-search.hxx"
 
 namespace ublas
 {
@@ -63,16 +64,54 @@ inline double calculate_time(const double& v, const ublas::vector<double>& s_pos
         return std::min(t1, t2);
 }
 
-int main(int, char**)
+void usage()
 {
-    FileSource<CSVParser> file("data/list-300000.csv");
+    std::cerr << "usage: exhaustive-search [options] <filename>" << std::endl
+        << "options:" << std::endl;
+    options::print_usage(std::cerr);
+}
+
+int main(int argc, char* argv[])
+{
+    double v(5.0);
+    std::string filename("");
+
+    try
+    {
+        int end;
+        options o(argc, argv, end);
+
+        if (o.help())
+        {
+            usage ();
+            return 0;
+        }
+
+        v = o.velocity();
+
+        if (o.file().empty())
+        {
+            std::cerr << "you have to specify a CVS-file containing the targets" << std::endl;
+            usage();
+            return 1;
+        }
+        filename = o.file();
+    }
+    catch (const cli::exception& e)
+    {
+        std::cerr << e << std::endl;
+        usage();
+        return 1;
+    }
+
+
+    FileSource<CSVParser> file(filename.c_str());
     std::shared_ptr<std::vector<Target>> targets(new std::vector<Target>);
     file.load( std::bind(&target_appender, targets,
                 std::placeholders::_1, std::placeholders::_2, std::placeholders::_3,
                 std::placeholders::_4, std::placeholders::_5, std::placeholders::_6,
                 std::placeholders::_7) );
 
-    const double v(5.0);
     Target start(0, 0, 0, 0, 0, 0, "start");
     const double start_time(0.0);
 

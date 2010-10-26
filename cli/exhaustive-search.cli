@@ -1,0 +1,20 @@
+
+include <string>;
+
+class options
+{
+    bool --help {"Print usage information and exit."};
+
+    double --velocity | -v = 5
+    {
+        "<velocity>",
+        "Usage the specified absolute velocity."
+    };
+
+    std::string --file | -f
+    {
+        "<filename>",
+        "Path to a CSV-file containing the list of targets."
+    };
+};
+
