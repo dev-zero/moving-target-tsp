@@ -1,7 +1,7 @@
 /* vim: set sw=4 sts=4 ft=cpp et foldmethod=syntax : */
 
 /*
- * Copyright (c) 2009 Tiziano Müller <tm@dev-zero.ch>
+ * Copyright (c) 2010 Tiziano Müller <tm@dev-zero.ch>
  *
  *
  *

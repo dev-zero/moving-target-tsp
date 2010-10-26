@@ -1,7 +1,7 @@
 /* vim: set sw=4 sts=4 ft=cpp et foldmethod=syntax : */
 
 /*
- * Copyright (c) 2009 Tiziano Müller <tm@dev-zero.ch>
+ * Copyright (c) 2010 Tiziano Müller <tm@dev-zero.ch>
  *
  *
  *
@@ -44,6 +44,8 @@ void target_appender(std::shared_ptr<std::vector<Target>> targets,
     std::cout << "    velocity: " << t.velocity << std::endl;
 }
 
+
+/* calculate the time duration to go from s_position to e_position which moves with e_velocity when travelling with velocity v */
 inline double calculate_time(const double& v, const ublas::vector<double>& s_position, const ublas::vector<double>& e_position, const ublas::vector<double>& e_velocity)
 {
     double a(v*v - ublas::inner_prod(e_velocity, e_velocity));
@@ -62,6 +64,34 @@ inline double calculate_time(const double& v, const ublas::vector<double>& s_pos
         return t1;
     else
         return std::min(t1, t2);
+}
+
+/* creates the required structures to draw a target using OSG */
+inline osg::ref_ptr<osg::Geode> create_target(const osg::Vec3f& position, const double& radius, const osg::Vec4& color = osg::Vec4(1, 1, 1, 1))
+{
+    osg::ref_ptr<osg::Geode> target_geode(new osg::Geode);
+    osg::ref_ptr<osg::Sphere> target_sphere(new osg::Sphere(position, radius));
+    osg::ref_ptr<osg::ShapeDrawable> target_drawable(new osg::ShapeDrawable(target_sphere.get()));
+    target_drawable->setColor( color );
+    target_geode->addDrawable(target_drawable.get());
+    return target_geode;
+}
+
+/* creates the tour objects to visualize it using OSG */
+inline osg::ref_ptr<osg::Geode> create_tour(osg::ref_ptr<osg::Vec3Array> target_positions_at_hit)
+{
+    osg::ref_ptr<osg::Geode> line_geode(new osg::Geode);
+    osg::ref_ptr<osg::Geometry> line_geometry(new osg::Geometry);
+    line_geometry->setVertexArray(target_positions_at_hit);
+
+    osg::ref_ptr<osg::Vec4Array> colors(new osg::Vec4Array);
+    colors->push_back(osg::Vec4(1.0f,1.0f,0.0f,1.0f));
+    line_geometry->setColorArray(colors);
+    line_geometry->setColorBinding(osg::Geometry::BIND_OVERALL);
+
+    line_geometry->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINE_LOOP, 0, target_positions_at_hit->size()));
+    line_geode->addDrawable(line_geometry);
+    return line_geode;
 }
 
 void usage()
@@ -104,22 +134,23 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-
-    FileSource<CSVParser> file(filename.c_str());
-    std::shared_ptr<std::vector<Target>> targets(new std::vector<Target>);
+    /* load the targets from the file */
+    FileSource<CSVParser> file(filename.c_str()); // create a file source using a CSVParser
+    std::shared_ptr<std::vector<Target>> targets(new std::vector<Target>); // container holding our targets
     file.load( std::bind(&target_appender, targets,
                 std::placeholders::_1, std::placeholders::_2, std::placeholders::_3,
                 std::placeholders::_4, std::placeholders::_5, std::placeholders::_6,
-                std::placeholders::_7) );
+                std::placeholders::_7) ); // bind the target-container-pointer to our appender-function and passing that to the source
 
-    Target start(0, 0, 0, 0, 0, 0, "start");
-    const double start_time(0.0);
+    Target start(0, 0, 0, 0, 0, 0, "start"); // create a fake start-target (currently hardcoded at 0/0/0 with velocity 0/0/0)
+    const double start_time(0.0); // initialize our start-time (could be hardocded but we may want to start at a different time than "now")
 
-    // adding the start at front
+    // insert the start at front
     targets->insert(targets->begin(), start);
 
-    double smallest_start_distance(std::numeric_limits<double>::infinity());
+    double smallest_start_distance(std::numeric_limits<double>::infinity()); // the smallest distance between two targets at t=0, mostly needed to calculated an appropriate radius for the 3D-objects
 
+    /* calculate the distance at t=0 between all targets */
     for (std::vector<Target>::const_iterator i(targets->begin()), i_end(targets->end()); i != i_end; ++i)
     {
         for (std::vector<Target>::const_iterator j(i+1); j != i_end; ++j)
@@ -128,20 +159,20 @@ int main(int argc, char* argv[])
             std::cout << "distance between targets " << i->name << " and " << j->name << " is: " << distance << std::endl;
             std::cout << "    direct travelling time: " << calculate_time(v, i->position, j->position, j->velocity) << std::endl;
 
-            if ( (distance > 0.0) && (distance < smallest_start_distance) )
+            if ( (distance > 0.0) && (distance < smallest_start_distance) ) // ignore the distance if it is 0 (to make sure we have a positiv radius)
                 smallest_start_distance = distance;
         }
     }
-    
-    // ... and at the end such that we get a closed cycle
+
+    // ... and at the end such that we get a closed cycle (doing it here to simplify the algorithm aboe)
     targets->push_back(start);
 
-    std::cout << std::endl;
-    std::cout << "============" << std::endl;
-    std::cout << "permutations" << std::endl;
-    std::cout << "============" << std::endl << std::endl;
 
-    std::vector<std::shared_ptr<std::vector<unsigned long>>> permutations;
+    /*
+     * generate the permutations
+     */
+
+    std::vector<std::shared_ptr<std::vector<unsigned long>>> permutations; // container holding all the target permutations
 
     // the first permutation is the ascending sequence of the numbers 0..n
     permutations.push_back( std::shared_ptr<std::vector<unsigned long>>(new std::vector<unsigned long>(targets->size())) );
@@ -151,17 +182,28 @@ int main(int argc, char* argv[])
         *i = std::distance(i_begin, i);
 
 
+    /* storing all permutations of 1..n which is quiet suboptimal since it will require n! objects */
+
     std::shared_ptr<std::vector<unsigned long>> permutation(new std::vector<unsigned long>(*permutations.front()));
     // we leave the front and end elements alone since they point to our start point
     while (std::next_permutation(permutation->begin()+1, permutation->end()-1))
     {
-        permutations.push_back(permutation);
+        permutations.push_back(permutation); // store each permutation in the permutation container
         permutation.reset(new std::vector<unsigned long>(*permutation));
     }
-    
-    std::shared_ptr<std::vector<unsigned long>> shortest_path_permutation;
-    std::shared_ptr<std::vector<double>> shortest_path_times;
-    double shortest_path_total_time(std::numeric_limits<double>::infinity());
+
+    /*
+     * calculate the travelling time based on the permutations
+     */
+
+    std::shared_ptr<std::vector<unsigned long>> shortest_path_permutation; // holding the permutation with the shortest path
+    std::shared_ptr<std::vector<double>> shortest_path_times; // stores the corresponding times (answer to: at which 't' did we hit the target?)
+    double shortest_path_total_time(std::numeric_limits<double>::infinity()); // ... and how long was the tour
+
+    std::cout << std::endl;
+    std::cout << "============" << std::endl;
+    std::cout << "permutations" << std::endl;
+    std::cout << "============" << std::endl << std::endl;
 
     for (auto i(permutations.begin()), i_end(permutations.end()); i != i_end; ++i)
     {
@@ -174,8 +216,8 @@ int main(int argc, char* argv[])
         {
             total_t += calculate_time(v,
                     targets->at(*j).position + total_t*targets->at(*j).velocity,
-                        targets->at(*(j+1)).position + total_t*targets->at(*(j+1)).velocity,
-                        targets->at(*(j+1)).velocity);
+                    targets->at(*(j+1)).position + total_t*targets->at(*(j+1)).velocity,
+                    targets->at(*(j+1)).velocity);
             std::cout << " -> " << targets->at(*(j+1)).name << " (" << total_t << ")";
             times->push_back(total_t);
         }
@@ -188,6 +230,9 @@ int main(int argc, char* argv[])
         }
     }
 
+    /*
+     * repeat the shortest path
+     */
     std::cout << "shortest path was: " << targets->at(shortest_path_permutation->front()).name << " (" << shortest_path_times->at(0) << ")";
     for (auto i(shortest_path_permutation->begin()), i_end(shortest_path_permutation->end()-1), i_begin(shortest_path_permutation->begin()); i != i_end; ++i)
     {
@@ -195,52 +240,44 @@ int main(int argc, char* argv[])
     }
     std::cout << std::endl;
 
+    /*
+     * visualize the start situation as well as the tour
+     */
     osgViewer::Viewer viewer;
     osg::ref_ptr<osg::Group> root(new osg::Group);
 
-    osg::Vec4 color(1.0f, 0.0f, 0.0f, 1.0f); // red
+    osg::Vec4 color(1.0f, 0.0f, 0.0f, 1.0f); // mark the start target (red)
     for (auto i(targets->begin()), i_end(targets->end()-1); i != i_end; ++i)
     {
-        osg::ref_ptr<osg::Geode> target_geode(new osg::Geode);
-        osg::ref_ptr<osg::Sphere> target_sphere(new osg::Sphere(osg::Vec3f(i->position(0), i->position(1), i->position(2)), smallest_start_distance/2.0));
-        osg::ref_ptr<osg::ShapeDrawable> target_drawable(new osg::ShapeDrawable(target_sphere.get()));
-        target_drawable->setColor( color );
-        target_geode->addDrawable(target_drawable.get());
-        root->addChild(target_geode.get());
+        root->addChild(create_target(
+            osg::Vec3f(i->position(0), i->position(1), i->position(2)),
+            smallest_start_distance/2.0,
+            color).get());
 
-        color[0] = 0.0f; color[2] = 1.0f; // all others should be blue
+        color[0] = 0.0f; color[2] = 1.0f; // the targets should be blue
     }
 
 
-    osg::ref_ptr<osg::Vec3Array> target_positions_at_hit(new osg::Vec3Array);
+    osg::ref_ptr<osg::Vec3Array> target_positions_at_hit(new osg::Vec3Array); // store the positions to draw the tour
 
     for (auto i(shortest_path_permutation->begin()), i_end(shortest_path_permutation->end()-1), i_begin(shortest_path_permutation->begin()); i != i_end; ++i)
     {
-        osg::ref_ptr<osg::Geode> target_geode(new osg::Geode);
         osg::Vec3 position(
-            targets->at(*i).position(0) + shortest_path_times->at(std::distance(i_begin, i))*targets->at(*i).velocity(0),
-            targets->at(*i).position(1) + shortest_path_times->at(std::distance(i_begin, i))*targets->at(*i).velocity(1),
-            targets->at(*i).position(2) + shortest_path_times->at(std::distance(i_begin, i))*targets->at(*i).velocity(2));
-        osg::ref_ptr<osg::Sphere> target_sphere(new osg::Sphere(position, smallest_start_distance/2.0));
-        osg::ref_ptr<osg::ShapeDrawable> target_drawable(new osg::ShapeDrawable(target_sphere.get()));
-        target_geode->addDrawable(target_drawable.get());
-        root->addChild(target_geode.get());
+                targets->at(*i).position(0) + shortest_path_times->at(std::distance(i_begin, i))*targets->at(*i).velocity(0),
+                targets->at(*i).position(1) + shortest_path_times->at(std::distance(i_begin, i))*targets->at(*i).velocity(1),
+                targets->at(*i).position(2) + shortest_path_times->at(std::distance(i_begin, i))*targets->at(*i).velocity(2));
+
+        root->addChild(create_target(
+            position,
+            smallest_start_distance/2.0));
+
         target_positions_at_hit->push_back(position);
     }
-    osg::ref_ptr<osg::Geode> line_geode(new osg::Geode);
-    osg::ref_ptr<osg::Geometry> line_geometry(new osg::Geometry);
-    line_geometry->setVertexArray(target_positions_at_hit);
-    osg::ref_ptr<osg::Vec4Array> colors(new osg::Vec4Array);
-    colors->push_back(osg::Vec4(1.0f,1.0f,0.0f,1.0f));
-    line_geometry->setColorArray(colors);
-    line_geometry->setColorBinding(osg::Geometry::BIND_OVERALL);
-    line_geometry->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINE_LOOP, 0, target_positions_at_hit->size()));
-    line_geode->addDrawable(line_geometry);
-    root->addChild(line_geode.get());
+
+    // draw the tour
+    root->addChild(create_tour(target_positions_at_hit).get());
 
     viewer.setSceneData(root.get());
-    return viewer.run();
-
-//    return 0;
+    return viewer.run(); // start the OSG event loop
 }
 
