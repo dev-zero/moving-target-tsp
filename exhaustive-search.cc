@@ -54,12 +54,16 @@ inline double calculate_time(const double& v, const ublas::vector<double>& s_pos
 
     if (std::abs(a) < std::numeric_limits<double>::epsilon())
         return -c / b;
-
+    // TODO: if b^2 =~ 4ac .. use different formula
     double t1( (-b + sqrt(b*b - 4*a*c)) / (2*a) );
     double t2( (-b - sqrt(b*b - 4*a*c)) / (2*a) );
 
     if (t1 < 0.0)
+    {
+        if (t2 < 0.0)
+            return std::numeric_limits<double>::infinity();
         return t2;
+    }
     else if(t2 < 0.0)
         return t1;
     else
@@ -67,7 +71,7 @@ inline double calculate_time(const double& v, const ublas::vector<double>& s_pos
 }
 
 /* creates the required structures to draw a target using OSG */
-inline osg::ref_ptr<osg::Geode> create_target(const osg::Vec3f& position, const double& radius, const osg::Vec4& color = osg::Vec4(1, 1, 1, 1))
+inline osg::ref_ptr<osg::Geode> create_target(const osg::Vec3f& position, const double& radius, const osg::Vec4& color = osg::Vec4(1, 1, 0.5, 0.1))
 {
     osg::ref_ptr<osg::Geode> target_geode(new osg::Geode);
     osg::ref_ptr<osg::Sphere> target_sphere(new osg::Sphere(position, radius));
@@ -228,6 +232,15 @@ int main(int argc, char* argv[])
             shortest_path_times = times;
             shortest_path_permutation = *i;
         }
+    }
+
+    /*
+     * check whether we really found a valid tour
+     */
+    if (!shortest_path_permutation)
+    {
+        std::cout << "no shortest path found, try with higher velocity" << std::endl;
+        return 1;
     }
 
     /*
