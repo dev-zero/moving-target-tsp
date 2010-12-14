@@ -25,6 +25,7 @@
 #include "sources/file_source.hh"
 #include "parser/csv.hh"
 #include "cli/exhaustive-search.hxx"
+#include "star.hh"
 
 namespace ublas
 {
@@ -125,7 +126,7 @@ int main(int argc, char* argv[])
 
         if (o.file().empty())
         {
-            std::cerr << "you have to specify a CVS-file containing the targets" << std::endl;
+            std::cerr << "you have to specify a CSV-file containing the targets" << std::endl;
             usage();
             return 1;
         }
@@ -259,14 +260,13 @@ int main(int argc, char* argv[])
     osgViewer::Viewer viewer;
     osg::ref_ptr<osg::Group> root(new osg::Group);
 
+    std::function<void (double, double, double, double, const osg::Vec4&)> addStar(
+            std::bind(addStarToRoot, root.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
+
     osg::Vec4 color(1.0f, 0.0f, 0.0f, 1.0f); // mark the start target (red)
     for (auto i(targets->begin()), i_end(targets->end()-1); i != i_end; ++i)
     {
-        root->addChild(create_target(
-            osg::Vec3f(i->position(0), i->position(1), i->position(2)),
-            smallest_start_distance/2.0,
-            color).get());
-
+        addStar(i->position(0), i->position(1), i->position(2), smallest_start_distance/2.0, color);
         color[0] = 0.0f; color[2] = 1.0f; // the targets should be blue
     }
 
@@ -280,9 +280,7 @@ int main(int argc, char* argv[])
                 targets->at(*i).position(1) + shortest_path_times->at(std::distance(i_begin, i))*targets->at(*i).velocity(1),
                 targets->at(*i).position(2) + shortest_path_times->at(std::distance(i_begin, i))*targets->at(*i).velocity(2));
 
-        root->addChild(create_target(
-            position,
-            smallest_start_distance/2.0));
+        addStar(position[0], position[1], position[2], smallest_start_distance/2.0, color);
 
         target_positions_at_hit->push_back(position);
     }

@@ -20,6 +20,11 @@ osg::ref_ptr<osg::Node> createStar(
     const double& radius,
     const osg::Vec4& color = osg::Vec4(1, 1, 0.5, 0.5));
 
-static const char* CORONA_BILLBOARD_IMAGE = "../Corona.tga";
+void addStarToRoot(
+        osg::Group* root,
+        double x, double y, double z,
+        double r,
+        osg::Vec4 color
+        );
 
 #endif // STAR_HH

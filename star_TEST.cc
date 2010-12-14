@@ -25,7 +25,8 @@ int main(int, char**)
     clearNode->setClearColor( osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f) );
     root->addChild(clearNode.get());
     
-    root->addChild(createStar(osg::Vec3(0, 0, 0), 109));
+    addStarToRoot(root,   0, 0, 0, 109, osg::Vec4(1, 1, 1, 1));
+    addStarToRoot(root, 600, 0, 0, 109, osg::Vec4(1, 1, 1, 1));
 
     osg::DisplaySettings::instance()->setNumMultiSamples(4); // anti-aliasing
 
