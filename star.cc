@@ -17,7 +17,6 @@
 #include <osg/Material>
 #include <osg/Billboard>
 #include <osg/Texture2D>
-#include <osg/AlphaFunc>
 #include <osgDB/ReadFile>
 
 #include "star.hh"
@@ -184,11 +183,6 @@ void addStarToRoot(
     stateset->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
     stateset->setMode(GL_BLEND, osg::StateAttribute::ON);
     stateset->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-
-    osg::ref_ptr<osg::AlphaFunc> alphaFunction(new osg::AlphaFunc);
-    alphaFunction->setFunction(osg::AlphaFunc::GEQUAL, 0.01f);
-    stateset->setAttributeAndModes(alphaFunction, osg::StateAttribute::ON);
-
     billboardGeometry->setStateSet(stateset);
 
     sunBillboard->addDrawable(
