@@ -172,37 +172,12 @@ int main(int argc, char* argv[])
     // ... and at the end such that we get a closed cycle (doing it here to simplify the algorithm aboe)
     targets->push_back(start);
 
-
     /*
-     * generate the permutations
+     * calculate the travelling time for all permutations
      */
 
-    std::vector<std::shared_ptr<std::vector<unsigned long>>> permutations; // container holding all the target permutations
-
-    // the first permutation is the ascending sequence of the numbers 0..n
-    permutations.push_back( std::shared_ptr<std::vector<unsigned long>>(new std::vector<unsigned long>(targets->size())) );
-    for (auto i(permutations.front()->begin()),
-            i_end(permutations.front()->end()),
-            i_begin(permutations.front()->begin()); i != i_end; ++i)
-        *i = std::distance(i_begin, i);
-
-
-    /* storing all permutations of 1..n which is quiet suboptimal since it will require n! objects */
-
-    std::shared_ptr<std::vector<unsigned long>> permutation(new std::vector<unsigned long>(*permutations.front()));
-    // we leave the front and end elements alone since they point to our start point
-    while (std::next_permutation(permutation->begin()+1, permutation->end()-1))
-    {
-        permutations.push_back(permutation); // store each permutation in the permutation container
-        permutation.reset(new std::vector<unsigned long>(*permutation));
-    }
-
-    /*
-     * calculate the travelling time based on the permutations
-     */
-
-    std::shared_ptr<std::vector<unsigned long>> shortest_path_permutation; // holding the permutation with the shortest path
-    std::shared_ptr<std::vector<double>> shortest_path_times; // stores the corresponding times (answer to: at which 't' did we hit the target?)
+    std::vector<unsigned long> shortest_path_permutation; // holding the permutation with the shortest path, not preallocating by intention
+    std::vector<double> shortest_path_times(targets->size()), path_times(targets->size()); // stores the corresponding times (answer to: at which 't' did we hit the target?)
     double shortest_path_total_time(std::numeric_limits<double>::infinity()); // ... and how long was the tour
 
     std::cout << std::endl;
@@ -210,35 +185,39 @@ int main(int argc, char* argv[])
     std::cout << "permutations" << std::endl;
     std::cout << "============" << std::endl << std::endl;
 
-    for (auto i(permutations.begin()), i_end(permutations.end()); i != i_end; ++i)
+    std::vector<unsigned long> permutation(targets->size());
+    unsigned long count(0);
+    std::generate(permutation.begin(), permutation.end(), [&count]() { return count++; });
+
+    do
     {
         double total_t(start_time);
-        std::shared_ptr<std::vector<double>> times(new std::vector<double>);
 
-        std::cout << targets->at((*i)->front()).name << " (" << total_t << ")";
-        times->push_back(total_t);
-        for (auto j((*i)->begin()), j_end((*i)->end()-1); j != j_end; ++j)
+        std::cout << targets->at(permutation.front()).name << " (" << total_t << ")";
+        path_times.front() = total_t;
+
+        for (auto j(permutation.begin()), j_end(permutation.end()-1); j != j_end; ++j)
         {
             total_t += calculate_time(v,
                     targets->at(*j).position + total_t*targets->at(*j).velocity,
                     targets->at(*(j+1)).position + total_t*targets->at(*(j+1)).velocity,
                     targets->at(*(j+1)).velocity);
             std::cout << " -> " << targets->at(*(j+1)).name << " (" << total_t << ")";
-            times->push_back(total_t);
+            path_times.at(std::distance(permutation.begin(), j+1)) = total_t;
         }
         std::cout << " = " << total_t << std::endl;
         if (total_t < shortest_path_total_time)
         {
             shortest_path_total_time = total_t;
-            shortest_path_times = times;
-            shortest_path_permutation = *i;
+            shortest_path_times.swap(path_times);
+            shortest_path_permutation.assign(permutation.begin(), permutation.end());
         }
-    }
+    } while (std::next_permutation(permutation.begin()+1, permutation.end()-1));
 
     /*
      * check whether we really found a valid tour
      */
-    if (!shortest_path_permutation)
+    if (!shortest_path_permutation.size())
     {
         std::cout << "no shortest path found, try with higher velocity" << std::endl;
         return 1;
@@ -247,10 +226,10 @@ int main(int argc, char* argv[])
     /*
      * repeat the shortest path
      */
-    std::cout << "shortest path was: " << targets->at(shortest_path_permutation->front()).name << " (" << shortest_path_times->at(0) << ")";
-    for (auto i(shortest_path_permutation->begin()), i_end(shortest_path_permutation->end()-1), i_begin(shortest_path_permutation->begin()); i != i_end; ++i)
+    std::cout << "shortest path was: " << targets->at(shortest_path_permutation.front()).name << " (" << shortest_path_times.front() << ")";
+    for (auto i(shortest_path_permutation.begin()), i_end(shortest_path_permutation.end()-1), i_begin(shortest_path_permutation.begin()); i != i_end; ++i)
     {
-        std::cout << " -> " << targets->at(*(i+1)).name << " (" << shortest_path_times->at(std::distance(i_begin, i)+1) << ")";
+        std::cout << " -> " << targets->at(*(i+1)).name << " (" << shortest_path_times.at(std::distance(i_begin, i)+1) << ")";
     }
     std::cout << std::endl;
 
@@ -273,12 +252,12 @@ int main(int argc, char* argv[])
 
     osg::ref_ptr<osg::Vec3Array> target_positions_at_hit(new osg::Vec3Array); // store the positions to draw the tour
 
-    for (auto i(shortest_path_permutation->begin()), i_end(shortest_path_permutation->end()-1), i_begin(shortest_path_permutation->begin()); i != i_end; ++i)
+    for (auto i(shortest_path_permutation.begin()), i_end(shortest_path_permutation.end()-1), i_begin(shortest_path_permutation.begin()); i != i_end; ++i)
     {
         osg::Vec3 position(
-                targets->at(*i).position(0) + shortest_path_times->at(std::distance(i_begin, i))*targets->at(*i).velocity(0),
-                targets->at(*i).position(1) + shortest_path_times->at(std::distance(i_begin, i))*targets->at(*i).velocity(1),
-                targets->at(*i).position(2) + shortest_path_times->at(std::distance(i_begin, i))*targets->at(*i).velocity(2));
+                targets->at(*i).position(0) + shortest_path_times.at(std::distance(i_begin, i))*targets->at(*i).velocity(0),
+                targets->at(*i).position(1) + shortest_path_times.at(std::distance(i_begin, i))*targets->at(*i).velocity(1),
+                targets->at(*i).position(2) + shortest_path_times.at(std::distance(i_begin, i))*targets->at(*i).velocity(2));
 
         addStar(position[0], position[1], position[2], smallest_start_distance/2.0, color);
 
