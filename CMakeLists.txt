@@ -12,7 +12,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wold-style-cast -Wredunda
 #include_directories(${QT_INCLUDES})
 
 add_executable(exhaustive-search exhaustive-search.cc
-    cli/exhaustive-search.cxx parser/csv.cc star.cc)
+    cli/exhaustive-search.cxx parser/csv.cc common_calculation_functions.cc star.cc)
 target_link_libraries(exhaustive-search ${QT_LIBRARIES} -losg -losgViewer)
 
 add_executable(parser_hip2_TEST parser/hip2.cc parser/hip2_TEST.cc)
