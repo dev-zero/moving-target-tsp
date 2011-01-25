@@ -171,7 +171,7 @@ int main(int argc, char* argv[])
 
     target_appender(app, 0, 0, 0, 0, 0, 0, "start"); // create a fake start-target (currently hardcoded at 0/0/0 with velocity 0/0/0)
 
-    file.load( std::bind(target_appender, app,
+    file.load( std::bind(target_appender, std::ref(app),
                 std::placeholders::_1, std::placeholders::_2, std::placeholders::_3,
                 std::placeholders::_4, std::placeholders::_5, std::placeholders::_6,
                 std::placeholders::_7) ); // bind the MovingTargetTSP instance to our appender-function and passing that to the source
@@ -182,7 +182,7 @@ int main(int argc, char* argv[])
     
     app.for_each_pair( std::bind(
                 calculate_distance_and_direct_travelling_time,
-                &smallest_start_distance, v,
+                std::ref(smallest_start_distance), v,
                 std::placeholders::_1, std::placeholders::_2) );
 
     target_appender(app, 0, 0, 0, 0, 0, 0, "end");

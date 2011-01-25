@@ -21,6 +21,6 @@ double calculate_time(const double& v,
 
 /* calculate the distance between two targets
  * and update the shortest_distance if the distance is shorter than shortest_distance */
-void calculate_distance_and_direct_travelling_time(double* shortest_distance, double v, const Target& a, const Target& b);
+void calculate_distance_and_direct_travelling_time(double& shortest_distance, double v, const Target& a, const Target& b);
 
 #endif // COMMON_CALCULATION_FUNCTIONS_HH

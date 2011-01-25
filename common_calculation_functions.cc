@@ -39,13 +39,13 @@ double calculate_time(const double& v, const ublas::vector<double>& s_position, 
         return std::min(t1, t2);
 }
 
-void calculate_distance_and_direct_travelling_time(double* shortest_distance, double v, const Target& a, const Target& b)
+void calculate_distance_and_direct_travelling_time(double& shortest_distance, double v, const Target& a, const Target& b)
 {
     double distance(ublas::norm_1(a.position - b.position));
     std::cout << "current distance between targets " << a.name << " and " << b.name << " is: " << distance << std::endl;
     std::cout << "    direct travelling time: " << calculate_time(v, a.position, b.position, b.velocity) << std::endl;
 
-    if ( (distance > 0.0) && (distance < *shortest_distance) ) // ignore the distance if it is 0 (to make sure we have a positiv radius)
-        *shortest_distance = distance;
+    if ( (distance > 0.0) && (distance < shortest_distance) ) // ignore the distance if it is 0 (to make sure we have a positiv radius)
+        shortest_distance = distance;
 }
 
