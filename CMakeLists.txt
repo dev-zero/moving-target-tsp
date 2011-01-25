@@ -15,8 +15,8 @@ add_executable(exhaustive-search exhaustive-search.cc
     cli/exhaustive-search.cxx parser/csv.cc star.cc)
 target_link_libraries(exhaustive-search ${QT_LIBRARIES} -losg -losgViewer)
 
-add_executable(hip2parser_TEST parser/hip2.cc hip2parser_TEST.cc)
-target_link_libraries(hip2parser_TEST -lgtest -lpthread)
+add_executable(parser_hip2_TEST parser/hip2.cc parser/hip2_TEST.cc)
+target_link_libraries(parser_hip2_TEST -lgtest -lpthread)
 
 add_executable(star_TEST star.cc star_TEST.cc)
 target_link_libraries(star_TEST -losg -losgViewer)

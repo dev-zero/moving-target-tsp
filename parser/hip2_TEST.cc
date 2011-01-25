@@ -10,8 +10,8 @@
 #include <gtest/gtest.h>
 #include <iostream>
 
-#include "parser/hip2.hh"
-#include "sources/file_source.hh"
+#include "hip2.hh"
+#include "../sources/file_source.hh"
 
 class HIP2ParserTest :
     public ::testing::Test
