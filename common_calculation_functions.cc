@@ -7,6 +7,7 @@
  *
  */
 
+#include <cmath>
 #include "common_calculation_functions.hh"
 
 namespace ublas
@@ -49,3 +50,17 @@ void calculate_distance_and_direct_travelling_time(double& shortest_distance, do
         shortest_distance = distance;
 }
 
+const static double DEG2RAD(M_PI/180.0);
+const static double C1(equatorial2galactic_constants::C1 * DEG2RAD);
+const static double C2(equatorial2galactic_constants::C2 * DEG2RAD);
+const static double C3(equatorial2galactic_constants::C3 * DEG2RAD);
+
+void equatorial2galactic(const double& delta, const double& alpha, double& b, double& l)
+{
+    const double x( cos(delta)*cos(alpha - C2) );
+    const double y( sin(delta)*sin(C1) + cos(delta)*sin(alpha - C2)*cos(C1) );
+    const double z( sin(delta)*cos(C1) - cos(delta)*sin(alpha - C2)*sin(C1) );
+
+    l = atan2(y, x) + C3;
+    b = atan2(z, sqrt(x*x + y*y));
+}
