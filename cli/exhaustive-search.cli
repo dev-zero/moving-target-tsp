@@ -14,7 +14,19 @@ class options
     std::string --file | -f
     {
         "<filename>",
-        "Path to a CSV-file containing the list of targets."
+        "Path to a file containing the list of targets."
+    };
+
+    std::string --filetype | -t
+    {
+        "<filetype>",
+        "Specify which type the file is (csv, hip2, ...)"
+    };
+
+    long int --limit | -l = -1
+    {
+        "<limit>",
+        "Only the specified number of records are loaded from the data file."
     };
 };
 

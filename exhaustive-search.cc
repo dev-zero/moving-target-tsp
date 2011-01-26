@@ -12,6 +12,7 @@
 #include <functional>
 #include <iostream>
 #include <limits>
+#include <sstream>
 
 #include <osgViewer/Viewer>
 #include <osg/ShapeDrawable>
@@ -21,6 +22,7 @@
 #include "target.hh"
 #include "sources/file_source.hh"
 #include "parser/csv.hh"
+#include "parser/hip2.hh"
 #include "cli/exhaustive-search.hxx"
 #include "star.hh"
 #include "common_calculation_functions.hh"
@@ -94,6 +96,55 @@ void target_appender(MovingTargetTSP& app,
     std::cout << "    position: " << x << ", " << y << ", " << z << std::endl;
     std::cout << "    velocity: " << v_x << ", " << v_y << ", " << v_z << std::endl;
 }
+/* output our hip2 targets while they're added */
+void hip2_target_appender(MovingTargetTSP& app, size_t limit, size_t& count,
+        const int& id, const int& solutiontype, const double& ra,
+        const double& decl, const double& plx, const double& plx_err,
+        const double& /*motion_ra*/, const double& /*motion_decl*/, const double& /*colour_index*/)
+{
+    std::string name;
+    std::stringstream out;
+    out << "hip id " << id;
+    name = out.str();
+
+    /* ok, the description given for the catalogue column is reeeeeallly crappy
+     * TODO: figure out what the solutiontype really means, ignoring everything bigger 1 for now
+     * TODO: why do I ignore them again? */
+    if (solutiontype > 1)
+    {
+        std::cout << "target '" << name << "' ignored (not a simple/single star)" << std::endl;
+        return;
+    }
+    if (count >= limit)
+    {
+        std::cout << "target '" << name << "' ignored (reached limit of " << limit << " targets)" << std::endl;
+        return;
+    }
+    
+    std::cout << "target '" << name << "' added" << std::endl;
+
+    ++count;
+
+    double b(0.0), l(0.0);
+    equatorial2galactic(decl, ra, b, l);
+
+    double r(0.0), x(0.0), y(0.0), z(0.0), v_x(0.0), v_y(0.0), v_z(0.0);
+
+    /* ok, this is stupidly copied from create_coords2.c
+     * TODO: understand */
+    if (plx < 0.5*plx_err)
+        r = 1.5/plx_err;
+    else
+        r = 1.0/plx;
+
+    x = r*cos(b)*cos(l);
+    y = r*cos(b)*sin(l);
+    z = r*sin(b);
+
+    app.add_target(x, y, z, v_x, v_y, v_z, name);
+    std::cout << "    position: " << x << ", " << y << ", " << z << std::endl;
+    std::cout << "    velocity: " << v_x << ", " << v_y << ", " << v_z << std::endl;
+}
 
 /* creates the required structures to draw a target using OSG */
 inline osg::ref_ptr<osg::Geode> create_target(const osg::Vec3f& position, const double& radius, const osg::Vec4& color = osg::Vec4(1, 1, 0.5, 0.1))
@@ -134,6 +185,8 @@ int main(int argc, char* argv[])
 {
     double v(5.0);
     std::string filename("");
+    std::string filetype("csv");
+    size_t limit(std::numeric_limits<size_t>::infinity());
 
     /* handle commandline arguments */
     try
@@ -151,11 +204,26 @@ int main(int argc, char* argv[])
 
         if (o.file().empty())
         {
-            std::cerr << "you have to specify a CSV-file containing the targets" << std::endl;
+            std::cerr << "you have to specify a file containing the targets" << std::endl;
             usage();
             return 1;
         }
         filename = o.file();
+
+        if (!o.filetype().empty())
+        {
+            filetype = o.filetype();
+            if ( (filetype != "csv") && (filetype != "hip2") )
+            {
+                std::cerr << "the following formats are currently supported: csv, hip2" << std::endl;
+                usage();
+                return 1;
+            }
+        }
+
+        if (o.limit() >= 0) // default is -1 (unlimited)
+            limit = o.limit();
+
     }
     catch (const cli::exception& e)
     {
@@ -164,17 +232,38 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    /* load the targets from the file */
-    FileSource<CSVParser> file(filename.c_str()); // create a file source using a CSVParser
-
     MovingTargetTSP app;
 
     target_appender(app, 0, 0, 0, 0, 0, 0, "start"); // create a fake start-target (currently hardcoded at 0/0/0 with velocity 0/0/0)
 
-    file.load( std::bind(target_appender, std::ref(app),
-                std::placeholders::_1, std::placeholders::_2, std::placeholders::_3,
-                std::placeholders::_4, std::placeholders::_5, std::placeholders::_6,
-                std::placeholders::_7) ); // bind the MovingTargetTSP instance to our appender-function and passing that to the source
+    /* load the targets from the file */
+
+    if (filetype == "csv")
+    {
+        FileSource<CSV::Parser> file(filename.c_str()); // create a file source using a CSVParser
+
+
+        file.load( std::bind(target_appender, std::ref(app),
+                    std::placeholders::_1, std::placeholders::_2, std::placeholders::_3,
+                    std::placeholders::_4, std::placeholders::_5, std::placeholders::_6,
+                    std::placeholders::_7) ); // bind the MovingTargetTSP instance to our appender-function and passing that to the source
+    } else if(filetype == "hip2")
+    {
+        FileSource<HIP2::Parser> file(filename.c_str()); // create a file source using a HIP2Parser
+
+        size_t no_targets(0);
+        file.load( std::bind(hip2_target_appender, std::ref(app), limit, std::ref(no_targets),
+                    std::placeholders::_1, std::placeholders::_2, std::placeholders::_3,
+                    std::placeholders::_4, std::placeholders::_5, std::placeholders::_6,
+                    std::placeholders::_7, std::placeholders::_8, std::placeholders::_9) );
+        std::cout << "loaded " << no_targets << " of targets" << std::endl;
+    }
+
+    if (app.size() == 1)
+    {
+        std::cerr << "no valid records found in the specified file" << std::endl;
+        return 1;
+    }
 
     const double start_time(0.0); // initialize our start-time (could be hardocded but we may want to start at a different time than "now")
 
