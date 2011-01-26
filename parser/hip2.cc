@@ -12,8 +12,10 @@
 #include <cstdlib>
 #include <iostream>
 
+namespace HIP2 {
+
 void
-HIP2Parser::operator()(const std::string& text, appender_func func)
+Parser::operator()(const std::string& text, appender_func func)
 {
     std::string::size_type offset(0), next_eol(0);
 
@@ -48,4 +50,6 @@ HIP2Parser::operator()(const std::string& text, appender_func func)
 
         offset = next_eol+1;
     }
+}
+
 }

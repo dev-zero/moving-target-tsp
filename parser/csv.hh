@@ -14,15 +14,18 @@
 #include <string>
 #include <exception>
 
+namespace CSV {
+
 struct InvalidLine :
     public std::exception
 {
 };
 
-struct CSVParser
+struct Parser
 {
     typedef std::function<void (const double&, const double&, const double&, const double&, const double&, const double&, const std::string&)> appender_func;
     void operator()(const std::string& text, appender_func func);
 };
 
+}
 #endif // CSV_HH

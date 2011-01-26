@@ -10,8 +10,10 @@
 #include <vector>
 
 #include "csv.hh"
-   
-void CSVParser::operator()(const std::string& text, appender_func func)
+
+namespace CSV {
+
+void Parser::operator()(const std::string& text, appender_func func)
 {
     std::string::size_type offset(0), next_eol(0), pos(0);
     std::vector<std::string> tokens(7);
@@ -72,3 +74,4 @@ void CSVParser::operator()(const std::string& text, appender_func func)
     }
 }
 
+}
