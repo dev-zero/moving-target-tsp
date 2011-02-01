@@ -101,7 +101,7 @@ bool target_appender(MovingTargetTSP& app,
 bool hip2_target_appender(MovingTargetTSP& app, size_t limit, size_t& count,
         const int& id, const int& solutiontype, const double& ra,
         const double& decl, const double& plx, const double& plx_err,
-        const double& /*motion_ra*/, const double& /*motion_decl*/, const double& /*colour_index*/)
+        const double& motion_ra, const double& motion_decl, const double& /*colour_index*/)
 {
     std::string name;
     std::stringstream out;
@@ -126,21 +126,22 @@ bool hip2_target_appender(MovingTargetTSP& app, size_t limit, size_t& count,
 
     ++count;
 
-    double b(0.0), l(0.0);
-    equatorial2galactic(decl, ra, b, l);
+    double x(0.0), y(0.0), z(0.0);
+    double v_x(0.0), v_y(0.0), v_z(0.0);
+    equatorial2cartesian(decl, ra, plx, plx_err, x, y, z);
 
-    double r(0.0), x(0.0), y(0.0), z(0.0), v_x(0.0), v_y(0.0), v_z(0.0);
-
-    /* ok, this is stupidly copied from create_coords2.c
-     * TODO: understand */
-    if (plx < 0.5*plx_err)
-        r = 1.5/plx_err;
-    else
-        r = 1.0/plx;
-
-    x = r*cos(b)*cos(l);
-    y = r*cos(b)*sin(l);
-    z = r*sin(b);
+    /* the proper motion is given in mas/y
+     * 3600*1000 mas == 1 degree
+     * calculating the shifted position first and subtracting the current positions from it should give us
+     * the relative velocity vectors in cartesian coordinates.
+     * TODO 1: still not accounting for the distance and the absolute speed of light
+     * TODO 2: hipparcos doesn't contain the radial velocities since no redshift has been measured,
+     *         use the RAVE or Pulkovo catalogue to get these (problem: matching ids with hipparcos data)
+     */
+    equatorial2cartesian(decl + (motion_decl/(3600000.0*180.0)*M_PI), ra + (motion_ra/(3600000.0*180.0)*M_PI), plx, plx_err, v_x, v_y, v_z);
+    v_x -= x;
+    v_y -= y;
+    v_z -= z;
 
     app.add_target(x, y, z, v_x, v_y, v_z, name);
     std::cout << "    position: " << x << ", " << y << ", " << z << std::endl;

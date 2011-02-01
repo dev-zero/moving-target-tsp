@@ -64,3 +64,21 @@ void equatorial2galactic(const double& delta, const double& alpha, double& b, do
     l = atan2(y, x) + C3;
     b = atan2(z, sqrt(x*x + y*y));
 }
+
+void equatorial2cartesian(const double& delta, const double& alpha, const double& plx, const double& plx_err, double& x, double& y, double& z)
+{
+    double b(0.0), l(0.0), r(0.0);
+
+    equatorial2galactic(delta, alpha, b, l);
+
+    /* ok, this is stupidly copied from create_coords2.c
+     * TODO: understand */
+    if (plx < 0.5*plx_err)
+        r = 1.5/plx_err;
+    else
+        r = 1.0/plx;
+
+    x = r*cos(b)*cos(l);
+    y = r*cos(b)*sin(l);
+    z = r*sin(b);
+}

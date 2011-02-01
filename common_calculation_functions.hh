@@ -53,4 +53,5 @@ namespace equatorial2galactic_constants
 
 void equatorial2galactic(const double& delta, const double& alpha, double& b, double& l);
 
+void equatorial2cartesian(const double& delta, const double& alpha, const double& plx, const double& plx_err, double& x, double& y, double& z);
 #endif // COMMON_CALCULATION_FUNCTIONS_HH
