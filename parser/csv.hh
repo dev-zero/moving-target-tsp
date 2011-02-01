@@ -23,7 +23,7 @@ struct InvalidLine :
 
 struct Parser
 {
-    typedef std::function<void (const double&, const double&, const double&, const double&, const double&, const double&, const std::string&)> appender_func;
+    typedef std::function<bool (const double&, const double&, const double&, const double&, const double&, const double&, const std::string&)> appender_func;
     void operator()(const std::string& text, appender_func func);
 };
 

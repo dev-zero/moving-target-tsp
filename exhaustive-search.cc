@@ -85,7 +85,7 @@ public:
 };
 
 /* output our targets while they're added */
-void target_appender(MovingTargetTSP& app,
+bool target_appender(MovingTargetTSP& app,
         const double& x, const double& y, const double& z,
         const double& v_x, const double& v_y, const double& v_z,
         const std::string& name)
@@ -95,9 +95,10 @@ void target_appender(MovingTargetTSP& app,
     std::cout << "    name:     " << name << std::endl;
     std::cout << "    position: " << x << ", " << y << ", " << z << std::endl;
     std::cout << "    velocity: " << v_x << ", " << v_y << ", " << v_z << std::endl;
+    return true;
 }
 /* output our hip2 targets while they're added */
-void hip2_target_appender(MovingTargetTSP& app, size_t limit, size_t& count,
+bool hip2_target_appender(MovingTargetTSP& app, size_t limit, size_t& count,
         const int& id, const int& solutiontype, const double& ra,
         const double& decl, const double& plx, const double& plx_err,
         const double& /*motion_ra*/, const double& /*motion_decl*/, const double& /*colour_index*/)
@@ -109,16 +110,16 @@ void hip2_target_appender(MovingTargetTSP& app, size_t limit, size_t& count,
 
     /* ok, the description given for the catalogue column is reeeeeallly crappy
      * TODO: figure out what the solutiontype really means, ignoring everything bigger 1 for now
-     * TODO: why do I ignore them again? */
+     * TODO: why do _I_ ignore them again? */
     if (solutiontype > 1)
     {
         std::cout << "target '" << name << "' ignored (not a simple/single star)" << std::endl;
-        return;
+        return true;
     }
     if (count >= limit)
     {
         std::cout << "target '" << name << "' ignored (reached limit of " << limit << " targets)" << std::endl;
-        return;
+        return false; // return false to abort parsing here
     }
     
     std::cout << "target '" << name << "' added" << std::endl;
@@ -144,6 +145,8 @@ void hip2_target_appender(MovingTargetTSP& app, size_t limit, size_t& count,
     app.add_target(x, y, z, v_x, v_y, v_z, name);
     std::cout << "    position: " << x << ", " << y << ", " << z << std::endl;
     std::cout << "    velocity: " << v_x << ", " << v_y << ", " << v_z << std::endl;
+
+    return true;
 }
 
 /* creates the required structures to draw a target using OSG */

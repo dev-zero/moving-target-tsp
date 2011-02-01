@@ -28,7 +28,7 @@ struct Parser
 {
     /* data is:
      * HIP identifier, solution type, right ascension, declination, parallax, parallax error, proper motion in right ascension, proper motion in declination, colour index */
-    typedef std::function<void (int, int, double, double, double, double, double, double, double)> appender_func;
+    typedef std::function<bool (int, int, double, double, double, double, double, double, double)> appender_func;
     void operator()(const std::string& text, appender_func func);
 };
 

@@ -54,13 +54,14 @@ void Parser::operator()(const std::string& text, appender_func func)
                 line_offset = pos+1;
             }
             // TBD: use strtod instead of atof to be able to catch errors
-            func(atof(tokens[1].c_str()),
+            if (!func(atof(tokens[1].c_str()),
                     atof(tokens[2].c_str()),
                     atof(tokens[3].c_str()),
                     atof(tokens[4].c_str()),
                     atof(tokens[5].c_str()),
                     atof(tokens[6].c_str()),
-                    tokens[0]);
+                    tokens[0]))
+                return;
 
         }
         catch (InvalidLine& e)

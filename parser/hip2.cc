@@ -33,7 +33,7 @@ Parser::operator()(const std::string& text, appender_func func)
         if (next_eol-offset < 158)
             throw InvalidLine();
 
-        func(
+        if (!func(
                 atoi(text.substr(offset, 6).c_str()),
                 atoi(text.substr(offset + 7, 3).c_str()),
                 atof(text.substr(offset + 15, 13).c_str()),
@@ -42,7 +42,8 @@ Parser::operator()(const std::string& text, appender_func func)
                 atof(text.substr(offset + 83, 6).c_str()),
                 atof(text.substr(offset + 51, 8).c_str()),
                 atof(text.substr(offset + 60, 8).c_str()),
-                atof(text.substr(offset + 152, 6).c_str()));
+                atof(text.substr(offset + 152, 6).c_str())))
+            return;
 
         // we found the last line without carriage return
         if (next_eol == std::string::npos)
