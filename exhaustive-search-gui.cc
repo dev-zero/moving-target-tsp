@@ -400,7 +400,7 @@ int main(int argc, char* argv[])
     Ui_MainWindow ui;
     ui.setupUi(window.get());
 
-    ViewerWidget* widget(window->findChild<ViewerWidget*>("widget"));
+    ViewerWidget* widget(window->findChild<ViewerWidget*>("renderingWidget"));
     if (widget == NULL)
     {
         std::cerr << "widget not found" << std::endl;
