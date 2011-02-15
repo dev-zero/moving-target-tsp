@@ -88,9 +88,24 @@ void MainWindow::parserThreadFinished()
     _updateTargetNumbers();
 }
 
-void MainWindow::addTarget(const QString& name)
+void MainWindow::addTarget(const TargetDataQt& t)
 {
-    _targetsModel->appendRow(new QStandardItem(name));
+    logToConsole(QString("adding target '%1' at x=%2, y=%3, z=%4").arg(t.name).arg(t.position[0]).arg(t.position[1]).arg(t.position[2]));
+
+    QString line(t.name);
+
+    /* if the additional data contains a description,
+     * append it to the name */
+
+    QMap<QString, QVariant>::const_iterator f;
+
+    f = t.data.find("description");
+    if (f != t.data.end())
+        line += QString(" (%1)").arg(f->toString());
+
+    QStandardItem* item(new QStandardItem(line));
+    item->setData(QVariant::fromValue(t));
+    _targetsModel->appendRow(item);
     ++_targetsTotal;
 }
 
@@ -103,5 +118,13 @@ void MainWindow::_updateTargetNumbers()
 void MainWindow::_targetSelectionChanged(const QItemSelection& selected, const QItemSelection& deselected)
 {
     _targetsSelected += selected.indexes().size() - deselected.indexes().size();
+    QModelIndex idx;
+    foreach(idx, selected.indexes())
+    {
+        TargetDataQt t(_targetsModel->data(idx, Qt::UserRole + 1).value<TargetDataQt>());
+        logToConsole(QString("rendering target '%1' at x=%2, y=%3, z=%4").arg(t.name).arg(t.position[0]).arg(t.position[1]).arg(t.position[2]));
+        _ui->renderingWidget->addTarget(t);
+    }
+    
     _updateTargetNumbers();
 }

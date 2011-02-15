@@ -41,6 +41,22 @@ public:
         _parse(file_data, appender);
     }
 
+    virtual void load2tuple(typename Parser::appender_tuple_func appender)
+    {
+        std::string file_data;
+        std::ifstream file;
+        file.exceptions(std::ios::badbit | std::ios::failbit);
+
+        file.open(_filename.c_str());
+
+        std::copy(
+            std::istreambuf_iterator<char>(file.rdbuf()),
+            std::istreambuf_iterator<char>(),
+            std::back_inserter(file_data) );
+
+        _parse(file_data, appender);
+    }
+
     std::string get_identifier() const
     {
         return _filename;

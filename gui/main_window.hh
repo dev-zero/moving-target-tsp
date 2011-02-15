@@ -13,6 +13,8 @@
 #include <QMainWindow>
 #include <QItemSelection>
 
+#include "target_data.hh"
+
 // START: forward declarations
 namespace Ui { class MainWindow; }
 class ParserThread;
@@ -37,7 +39,7 @@ public slots:
     void parserThreadStarted();
     void parserThreadFinished();
 
-    void addTarget(const QString&);
+    void addTarget(const TargetDataQt&);
 
 private slots:
     void _datafileOpen();

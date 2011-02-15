@@ -19,13 +19,15 @@
 #include <osgViewer/ViewerEventHandlers>
 #include <osgGA/TrackballManipulator>
 
+#include "star.hh"
+#include "target_data.hh"
+
 class ViewerWidget :
     public QWidget, public osgViewer::CompositeViewer
 {
     Q_OBJECT
 public:
-    osgViewer::View* view;
-
+    
     ViewerWidget(QWidget* p) : QWidget(p)
     {
         setThreadingModel(osgViewer::CompositeViewer::SingleThreaded);
@@ -51,13 +53,16 @@ public:
         camera->setViewport( new osg::Viewport(0, 0, traits->width, traits->height) );
         camera->setProjectionMatrixAsPerspective(30.0f, static_cast<double>(traits->width)/static_cast<double>(traits->height), 1.0f, 10000.0f );
 
-        view = new osgViewer::View;
-        view->setCamera( camera );
-        addView( view );
+        _view = new osgViewer::View;
+        _root = new osg::Group;
 
-        view->addEventHandler( new osgViewer::StatsHandler );
-        view->setCameraManipulator( new osgGA::TrackballManipulator );
-        
+        _view->setCamera( camera );
+        addView( _view );
+
+        _view->addEventHandler( new osgViewer::StatsHandler );
+        _view->setCameraManipulator( new osgGA::TrackballManipulator );
+        _view->setSceneData(_root);
+
         osgQt::GraphicsWindowQt* gw = dynamic_cast<osgQt::GraphicsWindowQt*>( camera->getGraphicsContext() );
 
         QVBoxLayout *verticalLayout(new QVBoxLayout);
@@ -75,8 +80,22 @@ public:
         frame();
     }
 
+public slots:
+    void addTarget(const TargetDataQt& t)
+    {
+        addStarToRoot(_root, t.position[0], t.position[1], t.position[2], 1.0, osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f));
+    }
+    void removeTarget(const TargetDataQt&)
+    {
+    }
+    void clear()
+    {
+    }
 protected:
     QTimer _timer;
+private:
+    osg::Group* _root;
+    osgViewer::View* _view;
 };
 
 #endif // VIEWER_WIDGET_HH
