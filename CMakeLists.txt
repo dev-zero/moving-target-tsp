@@ -24,12 +24,23 @@ add_executable(star_TEST star.cc star_TEST.cc)
 target_link_libraries(star_TEST -losg -losgViewer)
 
 QT4_WRAP_UI(simplegui_UIS_H gui/simple.ui)
-QT4_WRAP_CPP(viewer_widget_MOC_SRCS gui/viewer_widget.hh)
+QT4_WRAP_CPP(viewer_widget_MOC_SRCS gui/viewer_widget.hh gui/main_window.hh
+    gui/parser_thread.hh)
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
-add_executable(simplegui exhaustive-search-gui.cc
+#add_executable(simplegui exhaustive-search-gui.cc
+#    gui/main_window.cc
+#    ${simplegui_UIS_H} ${viewer_widget_MOC_SRCS}
+#    cli/exhaustive-search.cxx parser/csv.cc parser/hip2.cc
+#    common_calculation_functions.cc star.cc)
+#target_link_libraries(simplegui
+#    ${QT_LIBRARIES}
+#    -losg -losgViewer -losgQt)
+
+add_executable(moving-target-tsp moving-target-tsp.cc
+    gui/main_window.cc
     ${simplegui_UIS_H} ${viewer_widget_MOC_SRCS}
     cli/exhaustive-search.cxx parser/csv.cc parser/hip2.cc
     common_calculation_functions.cc star.cc)
-target_link_libraries(simplegui
+target_link_libraries(moving-target-tsp
     ${QT_LIBRARIES}
     -losg -losgViewer -losgQt)
