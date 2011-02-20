@@ -39,6 +39,7 @@ int main(int argc, char* argv[])
     QObject::connect(&mainWindow, SIGNAL(computationStopRequested()), &computationThread, SLOT(stop()));
     QObject::connect(&computationThread, SIGNAL(started()), &mainWindow, SLOT(computationThreadStarted()));
     QObject::connect(&computationThread, SIGNAL(finished()), &mainWindow, SLOT(computationThreadFinished()));
+    QObject::connect(&computationThread, SIGNAL(log(const QString&)), &mainWindow, SLOT(logToConsole(const QString&)));
 
     mainWindow.show();
     return app.exec();

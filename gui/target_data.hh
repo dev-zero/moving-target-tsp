@@ -62,6 +62,24 @@ public:
         name(n)
     {
     }
+
+    TargetDataQt(const TargetDataQt& rhs) :
+        position(rhs.position),
+        velocity(rhs.velocity),
+        name(rhs.name),
+        data(rhs.data)
+    {
+    }
+
+    TargetDataQt& operator=(const TargetDataQt& rhs)
+    {
+        // TODO: thought that C++0x has a specifier to allow member functions write public const member
+        const_cast<std::array<double,3>&>(position) = rhs.position;
+        const_cast<std::array<double,3>&>(velocity) = rhs.velocity;
+        const_cast<QString&>(name) = rhs.name;
+        data = rhs.data;
+        return *this;
+    }
 };
 
 Q_DECLARE_METATYPE(TargetDataQt)
