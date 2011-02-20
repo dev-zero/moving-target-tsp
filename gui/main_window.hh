@@ -32,6 +32,8 @@ public:
 
 signals:
     void parsingRequested(const QString& filename, const QString& parsername);
+    void computationRequested(const QList<TargetDataQt>&);
+    void computationStopRequested();
 
 public slots:
     void logToConsole(const QString&);
@@ -41,16 +43,21 @@ public slots:
 
     void addTarget(const TargetDataQt&);
 
+    void computationThreadStarted();
+    void computationThreadFinished();
 private slots:
     void _datafileOpen();
     void _datafileLoad();
 
     void _targetSelectionChanged(const QItemSelection&, const QItemSelection&);
+
+    void _computationCommand();
 private:
     Ui::MainWindow* _ui;
     QStandardItemModel* _targetsModel;
     qulonglong _targetsTotal;
     qulonglong _targetsSelected;
+    bool _computationRunning;
 
     void _updateTargetNumbers();
 };

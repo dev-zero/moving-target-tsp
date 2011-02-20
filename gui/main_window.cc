@@ -22,7 +22,8 @@
 MainWindow::MainWindow() :
     QMainWindow(),
     _targetsTotal(0),
-    _targetsSelected(0)
+    _targetsSelected(0),
+    _computationRunning(false)
 {
     _ui = new Ui::MainWindow;
     _ui->setupUi(this);
@@ -35,6 +36,8 @@ MainWindow::MainWindow() :
 
     connect(_ui->targetsList->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&, const QItemSelection&)),
             this, SLOT(_targetSelectionChanged(const QItemSelection&, const QItemSelection&)));
+
+    connect(_ui->computationCommand, SIGNAL(clicked()), this, SLOT(_computationCommand()));
 
     statusBar()->showMessage("ready");
 }
@@ -103,7 +106,7 @@ void MainWindow::addTarget(const TargetDataQt& t)
         line += QString(" (%1)").arg(f->toString());
 
     QStandardItem* item(new QStandardItem(line));
-    item->setData(QVariant::fromValue(t));
+    item->setData(QVariant::fromValue(t), Qt::UserRole + 1);
 
     unsigned int idx(_ui->renderingWidget->addTarget(t));
     item->setData(QVariant::fromValue(idx), Qt::UserRole + 2); // first role idx is used for TargetDataQt
@@ -135,4 +138,37 @@ void MainWindow::_targetSelectionChanged(const QItemSelection& selected, const Q
     }
     _targetsSelected += selected.indexes().size() - deselected.indexes().size();
     _updateTargetNumbers();
+
+    if (_targetsSelected > 0)
+        _ui->computationCommand->setEnabled(true);
+    else
+        _ui->computationCommand->setEnabled(false);
+}
+
+void MainWindow::computationThreadStarted()
+{
+    logToConsole("computation started");
+    _computationRunning = true;
+    _ui->computationCommand->setText("Abort computation");
+    _ui->datafileSection->setEnabled(false);
+    _ui->targetsSection->setEnabled(false);
+    _ui->methodSection->setEnabled(false);
+}
+
+void MainWindow::computationThreadFinished()
+{
+    logToConsole("computation finished");
+    _computationRunning = false;
+    _ui->computationCommand->setText("Start computation");
+    _ui->datafileSection->setEnabled(true);
+    _ui->targetsSection->setEnabled(true);
+    _ui->methodSection->setEnabled(true);
+}
+
+void MainWindow::_computationCommand()
+{
+    if (_computationRunning)
+        emit computationStopRequested();
+    else
+        emit computationRequested(QList<TargetDataQt>());
 }

@@ -75,7 +75,7 @@
    <widget class="QWidget" name="dockWidgetContents_9">
     <layout class="QVBoxLayout" name="verticalLayout_3">
      <item>
-      <widget class="QGroupBox" name="gridGroupBox">
+      <widget class="QGroupBox" name="datafileSection">
        <property name="flat">
         <bool>true</bool>
        </property>
@@ -122,7 +122,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QGroupBox" name="gridGroupBox_2">
+      <widget class="QGroupBox" name="targetsSection">
        <property name="title">
         <string>Targets</string>
        </property>
@@ -239,7 +239,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QGroupBox" name="groupBox">
+      <widget class="QGroupBox" name="methodSection">
        <property name="title">
         <string>Method</string>
        </property>
@@ -272,9 +272,12 @@
       </widget>
      </item>
      <item>
-      <widget class="QCommandLinkButton" name="commandLinkButton">
+      <widget class="QCommandLinkButton" name="computationCommand">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
-        <string>Start</string>
+        <string>Start computation</string>
        </property>
       </widget>
      </item>
