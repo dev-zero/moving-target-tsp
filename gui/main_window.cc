@@ -77,6 +77,7 @@ void MainWindow::parserThreadStarted()
 {
     logToConsole("parsing started");
     _targetsModel->clear();
+    _ui->renderingWidget->clear();
     _targetsTotal = _targetsSelected = 0;
     _updateTargetNumbers();
 }
@@ -90,8 +91,6 @@ void MainWindow::parserThreadFinished()
 
 void MainWindow::addTarget(const TargetDataQt& t)
 {
-    logToConsole(QString("adding target '%1' at x=%2, y=%3, z=%4").arg(t.name).arg(t.position[0]).arg(t.position[1]).arg(t.position[2]));
-
     QString line(t.name);
 
     /* if the additional data contains a description,
@@ -105,7 +104,12 @@ void MainWindow::addTarget(const TargetDataQt& t)
 
     QStandardItem* item(new QStandardItem(line));
     item->setData(QVariant::fromValue(t));
+
+    unsigned int idx(_ui->renderingWidget->addTarget(t));
+    item->setData(QVariant::fromValue(idx), Qt::UserRole + 2); // first role idx is used for TargetDataQt
+
     _targetsModel->appendRow(item);
+
     ++_targetsTotal;
 }
 
@@ -117,14 +121,18 @@ void MainWindow::_updateTargetNumbers()
 
 void MainWindow::_targetSelectionChanged(const QItemSelection& selected, const QItemSelection& deselected)
 {
-    _targetsSelected += selected.indexes().size() - deselected.indexes().size();
     QModelIndex idx;
+    unsigned int t_idx;
     foreach(idx, selected.indexes())
     {
-        TargetDataQt t(_targetsModel->data(idx, Qt::UserRole + 1).value<TargetDataQt>());
-        logToConsole(QString("rendering target '%1' at x=%2, y=%3, z=%4").arg(t.name).arg(t.position[0]).arg(t.position[1]).arg(t.position[2]));
-        _ui->renderingWidget->addTarget(t);
+        t_idx = _targetsModel->data(idx, Qt::UserRole + 2).value<unsigned int>();
+        _ui->renderingWidget->enableTarget(t_idx);
     }
-    
+    foreach(idx, deselected.indexes())
+    {
+        t_idx = _targetsModel->data(idx, Qt::UserRole + 2).value<unsigned int>();
+        _ui->renderingWidget->disableTarget(t_idx);
+    }
+    _targetsSelected += selected.indexes().size() - deselected.indexes().size();
     _updateTargetNumbers();
 }

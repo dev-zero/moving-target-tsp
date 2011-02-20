@@ -152,6 +152,7 @@ void addStarToRoot(
     material->setEmission( osg::Material::FRONT_AND_BACK, color );
     sunStateSet->setAttributeAndModes( material, osg::StateAttribute::ON ); // turn the light on
 
+#if 0
     osg::ref_ptr<osg::Billboard> sunBillboard(new osg::Billboard());
     sunBillboard->setMode(osg::Billboard::POINT_ROT_EYE);
 
@@ -190,6 +191,7 @@ void addStarToRoot(
         position);
 
     root->addChild(sunBillboard.get());
+#endif
     root->addChild(solarSun.get());
 }
 

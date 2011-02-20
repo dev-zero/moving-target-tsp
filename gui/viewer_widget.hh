@@ -18,6 +18,7 @@
 #include <osgViewer/CompositeViewer>
 #include <osgViewer/ViewerEventHandlers>
 #include <osgGA/TrackballManipulator>
+#include <osg/Switch>
 
 #include "star.hh"
 #include "target_data.hh"
@@ -54,7 +55,8 @@ public:
         camera->setProjectionMatrixAsPerspective(30.0f, static_cast<double>(traits->width)/static_cast<double>(traits->height), 1.0f, 10000.0f );
 
         _view = new osgViewer::View;
-        _root = new osg::Group;
+        _root = new osg::Switch;
+        _root->setNewChildDefaultValue(false); // add children hidden by default
 
         _view->setCamera( camera );
         addView( _view );
@@ -80,21 +82,27 @@ public:
         frame();
     }
 
-public slots:
-    void addTarget(const TargetDataQt& t)
+    unsigned int addTarget(const TargetDataQt& t)
     {
-        addStarToRoot(_root, t.position[0], t.position[1], t.position[2], 1.0, osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f));
-    }
-    void removeTarget(const TargetDataQt&)
-    {
+        addStarToRoot(_root, t.position[0], t.position[1], t.position[2], 0.01, osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f));
+        return _root->getNumChildren()-1; // the inserted item is supposed to be the last one. Is that really true? ... premisse: addStarToRoot adds only one child
     }
     void clear()
     {
+        _root->removeChildren(0, _root->getNumChildren());
+    }
+    void enableTarget(unsigned int idx)
+    {
+        _root->setValue(idx, true);
+    }
+    void disableTarget(unsigned int idx)
+    {
+        _root->setValue(idx, false);
     }
 protected:
     QTimer _timer;
 private:
-    osg::Group* _root;
+    osg::Switch* _root;
     osgViewer::View* _view;
 };
 
