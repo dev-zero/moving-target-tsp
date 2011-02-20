@@ -12,7 +12,6 @@
 
 #include <QThread>
 #include <QString>
-#include <QMetaType>
 
 #include "sources/file_source.hh"
 #include "parser/csv.hh"
