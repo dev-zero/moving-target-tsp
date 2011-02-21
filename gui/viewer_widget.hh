@@ -23,6 +23,24 @@
 #include "star.hh"
 #include "target_data.hh"
 
+#include <iostream>
+
+inline osg::ref_ptr<osg::Geode> create_tour(osg::ref_ptr<osg::Vec3Array> target_positions_at_hit)
+{
+    osg::ref_ptr<osg::Geode> line_geode(new osg::Geode);
+    osg::ref_ptr<osg::Geometry> line_geometry(new osg::Geometry);
+    line_geometry->setVertexArray(target_positions_at_hit);
+
+    osg::ref_ptr<osg::Vec4Array> colors(new osg::Vec4Array);
+    colors->push_back(osg::Vec4(1.0f,1.0f,0.0f,1.0f));
+    line_geometry->setColorArray(colors);
+    line_geometry->setColorBinding(osg::Geometry::BIND_OVERALL);
+
+    line_geometry->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINE_LOOP, 0, target_positions_at_hit->size()));
+    line_geode->addDrawable(line_geometry);
+    return line_geode.release();
+}
+
 class ViewerWidget :
     public QWidget, public osgViewer::CompositeViewer
 {
@@ -98,6 +116,22 @@ public:
     void disableTarget(unsigned int idx)
     {
         _root->setValue(idx, false);
+    }
+
+    void addPath(const QList<std::array<double,3>>& list)
+    {
+        std::array<double,3> p = {{ 0.0, 0.0, 0.0 }};
+        osg::ref_ptr<osg::Vec3Array> positions(new osg::Vec3Array);
+
+        _root->setNewChildDefaultValue(true);
+        foreach(p, list)
+        {
+            positions->push_back(osg::Vec3(p[0], p[1], p[2]));
+            addStarToRoot(_root, p[0], p[1], p[2], 0.01,  osg::Vec4(1.0f, 1.0f, 0.0f, 1.0f));
+        }
+
+        _root->addChild(create_tour(positions.get()));
+        _root->setNewChildDefaultValue(false);
     }
 protected:
     QTimer _timer;

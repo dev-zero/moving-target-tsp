@@ -20,6 +20,7 @@ int main(int argc, char* argv[])
 {
     // register our custom type for Qt meta object usage before everything else
     qRegisterMetaType<TargetDataQt>("TargetDataQt");
+    qRegisterMetaType<QList<std::array<double,3>>>("QList<std::array<double,3>>");
 
     // initialize some osg subsystem settings (aka "yes, I want AA")
     osg::DisplaySettings::instance()->setNumMultiSamples(4);
@@ -40,6 +41,7 @@ int main(int argc, char* argv[])
     QObject::connect(&computationThread, SIGNAL(started()), &mainWindow, SLOT(computationThreadStarted()));
     QObject::connect(&computationThread, SIGNAL(finished()), &mainWindow, SLOT(computationThreadFinished()));
     QObject::connect(&computationThread, SIGNAL(log(const QString&)), &mainWindow, SLOT(logToConsole(const QString&)));
+    QObject::connect(&computationThread, SIGNAL(solutionFound(const QList<std::array<double,3>>&)), &mainWindow, SLOT(displayPath(const QList<std::array<double,3>>&)));
 
     mainWindow.show();
     return app.exec();

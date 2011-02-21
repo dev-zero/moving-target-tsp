@@ -45,6 +45,8 @@ public slots:
 
     void computationThreadStarted();
     void computationThreadFinished();
+
+    void displayPath(const QList<std::array<double,3>>&);
 private slots:
     void _datafileOpen();
     void _datafileLoad();
