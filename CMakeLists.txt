@@ -37,7 +37,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 #    -losg -losgViewer -losgQt)
 
 add_executable(moving-target-tsp moving-target-tsp.cc
-    gui/main_window.cc
+    gui/main_window.cc gui/computation_thread.cc
     ${simplegui_UIS_H} ${viewer_widget_MOC_SRCS}
     cli/exhaustive-search.cxx parser/csv.cc parser/hip2.cc
     common_calculation_functions.cc star.cc)
