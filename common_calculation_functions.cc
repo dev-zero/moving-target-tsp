@@ -97,7 +97,9 @@ void equatorial2cartesian(const double& delta, const double& alpha, const double
     equatorial2galactic(delta, alpha, b, l);
 
     /* ok, this is stupidly copied from create_coords2.c
-     * TODO: understand */
+     * TODO: understand
+     * in principal this gives us the radius in Parsec, is that correct?
+     * */
     if (plx < 0.5*plx_err)
         r = 1.5/plx_err;
     else
