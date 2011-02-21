@@ -100,6 +100,11 @@ void MainWindow::parserThreadFinished()
     logToConsole("parsing finished");
     _ui->datafileLoad->setEnabled(true);
     _updateTargetNumbers();
+
+    if (_ui->datafileType->currentText() == "CSV")
+        _ui->methodVelocityUnit->setText("units");
+    else if (_ui->datafileType->currentText() == "HIP2")
+        _ui->methodVelocityUnit->setText("parsec/year (=~ 9.78*10^8 m/s)");
 }
 
 void MainWindow::addTarget(const TargetDataQt& t)
