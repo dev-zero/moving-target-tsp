@@ -32,7 +32,7 @@ public:
 
 signals:
     void parsingRequested(const QString& filename, const QString& parsername);
-    void computationRequested(const QList<TargetDataQt>&, double);
+    void computationRequested(const QList<TargetDataQt>&, double, const QString&);
     void computationStopRequested();
 
 public slots:

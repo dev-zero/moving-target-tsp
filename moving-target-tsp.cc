@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
     QObject::connect(&parserThread, SIGNAL(finished()), &mainWindow, SLOT(parserThreadFinished()));
     QObject::connect(&parserThread, SIGNAL(targetFound(const TargetDataQt&)), &mainWindow, SLOT(addTarget(const TargetDataQt&)));
     QObject::connect(&mainWindow, SIGNAL(parsingRequested(const QString&, const QString&)), &parserThread, SLOT(start(const QString&, const QString&)));
-    QObject::connect(&mainWindow, SIGNAL(computationRequested(const QList<TargetDataQt>&, double)), &computationThread, SLOT(start(const QList<TargetDataQt>&, double)));
+    QObject::connect(&mainWindow, SIGNAL(computationRequested(const QList<TargetDataQt>&, double, const QString&)), &computationThread, SLOT(start(const QList<TargetDataQt>&, double, const QString&)));
     QObject::connect(&mainWindow, SIGNAL(computationStopRequested()), &computationThread, SLOT(stop()));
     QObject::connect(&computationThread, SIGNAL(started()), &mainWindow, SLOT(computationThreadStarted()));
     QObject::connect(&computationThread, SIGNAL(finished()), &mainWindow, SLOT(computationThreadFinished()));

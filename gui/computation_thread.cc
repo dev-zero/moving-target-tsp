@@ -14,7 +14,6 @@
 #include <algorithm>
 
 #include "common_calculation_functions.hh"
-#include "target_data.hh"
 #include "computation_thread.hh"
 
 class ExhaustiveSearch
@@ -125,29 +124,41 @@ void ComputationThread::run()
 
     std::array<double,3> p_and_v = {{ 0.0, 0.0, 0.0 }};
 
-    ExhaustiveSearch es(_targets, _velocity, TargetDataQt(p_and_v, p_and_v, "origin"));
-
-    while (!_stop && !es.done())
-        es.step();
-
-    if (es.done() && es.found_solution())
+    // TODO: make computation base class and switch in start()
+    if (_method == "Exhaustive Search")
     {
-        QList<std::array<double,3>> list;
-        const std::array<double,3> origin = {{ 0.0, 0.0, 0.0 }};
-        list << origin;
-        for (long n(0); n < _targets.size(); ++n)
+        ExhaustiveSearch es(_targets, _velocity, TargetDataQt(p_and_v, p_and_v, "origin"));
+
+        while (!_stop && !es.done())
+            es.step();
+
+        if (es.done() && es.found_solution())
         {
-            list << es.get_shortest_path_target_position(n);
+            QList<std::array<double,3>> list;
+            const std::array<double,3> origin = {{ 0.0, 0.0, 0.0 }};
+            list << origin;
+            for (long n(0); n < _targets.size(); ++n)
+            {
+                list << es.get_shortest_path_target_position(n);
+            }
+            list << origin;
+            emit solutionFound(list);
         }
-        list << origin;
-        emit solutionFound(list);
+    }
+    else if (_method == "Simulated Annealing")
+    {
+    }
+    else
+    {
+        emit log(QString("Unknown computation method selected: %1").arg(_method));
     }
 }
 
-void ComputationThread::start(const QList<TargetDataQt>& targets, double velocity)
+void ComputationThread::start(const QList<TargetDataQt>& targets, double velocity, const QString& method)
 {
     _targets = targets;
     _velocity = velocity;
+    _method = method;
     emit log(QString("calculating tour for %1 targets").arg(_targets.size()));
     QThread::start();
 }

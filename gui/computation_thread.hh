@@ -25,7 +25,7 @@ public:
     void run();
 
 public slots:
-    void start(const QList<TargetDataQt>& targets, double velocity);
+    void start(const QList<TargetDataQt>& targets, double velocity, const QString& method);
     void stop();
 
 signals:
@@ -36,5 +36,6 @@ private:
     bool _stop;
     QList<TargetDataQt> _targets;
     double _velocity;
+    QString _method;
 };
 #endif // COMPUTATION_THREAD_HH

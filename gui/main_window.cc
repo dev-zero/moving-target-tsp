@@ -196,7 +196,7 @@ void MainWindow::_computationCommand()
         {
             targets.push_back(idx.data(Qt::UserRole + 1).value<TargetDataQt>());
         }
-        emit computationRequested(targets, _ui->methodVelocity->value());
+        emit computationRequested(targets, _ui->methodVelocity->value(), _ui->methodType->currentText());
     }
 }
 
