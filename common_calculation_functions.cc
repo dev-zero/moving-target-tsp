@@ -40,6 +40,31 @@ double calculate_time(const double& v, const ublas::vector<double>& s_position, 
         return std::min(t1, t2);
 }
 
+/* calculate the time duration to go from s_position to e_position which moves with e_velocity when travelling with velocity v */
+double calculate_time(const double& v, const std::array<double,3>& s_position, const std::array<double,3>& e_position, const std::array<double,3>& e_velocity)
+{
+    double a(v*v - inner_prod(e_velocity, e_velocity));
+    double b(-2 * inner_prod(e_position - s_position, e_velocity));
+    double c(-inner_prod(e_position - s_position, e_position - s_position));
+
+    if (std::abs(a) < std::numeric_limits<double>::epsilon())
+        return -c / b;
+    // TODO: if b^2 =~ 4ac .. use different formula
+    double t1( (-b + sqrt(b*b - 4*a*c)) / (2*a) );
+    double t2( (-b - sqrt(b*b - 4*a*c)) / (2*a) );
+
+    if (t1 < 0.0)
+    {
+        if (t2 < 0.0)
+            return std::numeric_limits<double>::infinity();
+        return t2;
+    }
+    else if(t2 < 0.0)
+        return t1;
+    else
+        return std::min(t1, t2);
+}
+
 void calculate_distance_and_direct_travelling_time(double& shortest_distance, double v, const Target& a, const Target& b)
 {
     double distance(ublas::norm_1(a.position - b.position));

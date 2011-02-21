@@ -11,13 +11,43 @@
 #define COMMON_CALCULATION_FUNCTIONS_HH
 
 #include <boost/numeric/ublas/vector.hpp>
+#include <array>
 #include "target.hh"
+
+inline std::array<double,3> operator*(const double& lhs, const std::array<double,3>& rhs)
+{
+    std::array<double,3> ret = {{ lhs*rhs[0], lhs*rhs[1], lhs*rhs[2] }};
+    return ret;
+}
+
+inline std::array<double,3> operator+(const std::array<double,3>& lhs, const std::array<double,3>& rhs)
+{
+    std::array<double,3> ret = {{ lhs[0]+rhs[0], lhs[1]+rhs[1], lhs[2]+rhs[2] }};
+    return ret;
+}
+
+inline std::array<double,3> operator-(const std::array<double,3>& lhs, const std::array<double,3>& rhs)
+{
+    std::array<double,3> ret = {{ lhs[0]-rhs[0], lhs[1]-rhs[1], lhs[2]-rhs[2] }};
+    return ret;
+}
+
+
+inline double inner_prod(const std::array<double,3>& lhs, const std::array<double,3>& rhs)
+{
+    return lhs[0]*rhs[0] + lhs[1]*rhs[1] + lhs[2]*rhs[2];
+}
 
 /* calculate the time duration to go from s_position to e_position which moves with e_velocity when travelling with velocity v */
 double calculate_time(const double& v,
         const boost::numeric::ublas::vector<double>& s_position,
         const boost::numeric::ublas::vector<double>& e_position,
         const boost::numeric::ublas::vector<double>& e_velocity);
+
+double calculate_time(const double& v,
+        const std::array<double,3>& s_position,
+        const std::array<double,3>& e_position,
+        const std::array<double,3>& e_velocity);
 
 /* calculate the distance between two targets
  * and update the shortest_distance if the distance is shorter than shortest_distance */
