@@ -47,7 +47,9 @@ class ViewerWidget :
     Q_OBJECT
 public:
     
-    ViewerWidget(QWidget* p) : QWidget(p)
+    ViewerWidget(QWidget* p) :
+        QWidget(p),
+        _path(NULL)
     {
         setThreadingModel(osgViewer::CompositeViewer::SingleThreaded);
 
@@ -118,25 +120,34 @@ public:
         _root->setValue(idx, false);
     }
 
-    void addPath(const QList<std::array<double,3>>& list)
+    void displayPath(const QList<std::array<double,3>>& list)
     {
         std::array<double,3> p = {{ 0.0, 0.0, 0.0 }};
         osg::ref_ptr<osg::Vec3Array> positions(new osg::Vec3Array);
 
-        _root->setNewChildDefaultValue(true);
+        osg::ref_ptr<osg::Group> path(new osg::Group);
         foreach(p, list)
         {
             positions->push_back(osg::Vec3(p[0], p[1], p[2]));
-            addStarToRoot(_root, p[0], p[1], p[2], 0.01,  osg::Vec4(1.0f, 1.0f, 0.0f, 1.0f));
+            addStarToRoot(path.get(), p[0], p[1], p[2], 0.01,  osg::Vec4(1.0f, 1.0f, 0.0f, 1.0f));
         }
 
-        _root->addChild(create_tour(positions.get()));
+        path->addChild(create_tour(positions.get()));
+
+        _root->setNewChildDefaultValue(true);
+        if (_path != NULL)
+            _root->setChild(_root->getChildIndex(_path), path.get());
+        else
+            _root->addChild(path.get());
+
+        _path = path.get();
         _root->setNewChildDefaultValue(false);
     }
 protected:
     QTimer _timer;
 private:
     osg::Switch* _root;
+    osg::Group* _path;
     osgViewer::View* _view;
 };
 

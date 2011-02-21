@@ -186,5 +186,5 @@ void MainWindow::_computationCommand()
 void MainWindow::displayPath(const QList<std::array<double,3>>& list)
 {
     logToConsole("found a path, drawing...");
-    _ui->renderingWidget->addPath(list);
+    _ui->renderingWidget->displayPath(list);
 }
