@@ -133,9 +133,8 @@ public:
         _stop = false;
 
         std::array<double,3> p_and_v = {{ 0.0, 0.0, 0.0 }};
-        double velocity(0.00001);
 
-        ExhaustiveSearch es(_targets, velocity, TargetDataQt(p_and_v, p_and_v, "origin"));
+        ExhaustiveSearch es(_targets, _velocity, TargetDataQt(p_and_v, p_and_v, "origin"));
 
         while (!_stop && !es.done())
             es.step();
@@ -155,9 +154,10 @@ public:
     }
 
 public slots:
-    void start(const QList<TargetDataQt>& targets)
+    void start(const QList<TargetDataQt>& targets, double velocity)
     {
         _targets = targets;
+        _velocity = velocity;
         emit log(QString("calculating tour for %1 targets").arg(_targets.size()));
         QThread::start();
     }
@@ -173,5 +173,6 @@ signals:
 private:
     bool _stop;
     QList<TargetDataQt> _targets;
+    double _velocity;
 };
 #endif // COMPUTATION_THREAD_HH

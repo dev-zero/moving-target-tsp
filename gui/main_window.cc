@@ -179,7 +179,7 @@ void MainWindow::_computationCommand()
         {
             targets.push_back(idx.data(Qt::UserRole + 1).value<TargetDataQt>());
         }
-        emit computationRequested(targets);
+        emit computationRequested(targets, _ui->methodVelocity->value());
     }
 }
 
