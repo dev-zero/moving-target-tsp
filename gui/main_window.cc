@@ -39,6 +39,8 @@ MainWindow::MainWindow() :
 
     connect(_ui->computationCommand, SIGNAL(clicked()), this, SLOT(_computationCommand()));
 
+    _ui->methodWarning->setVisible(false);
+
     statusBar()->showMessage("ready");
 }
 
@@ -55,7 +57,15 @@ void MainWindow::logToConsole(const QString& text)
 
 void MainWindow::_datafileOpen()
 {
-    QString filename(QFileDialog::getOpenFileName(this));
+    QString filter("Comma-separate value list (*.txt *.csv)");
+    if (_ui->datafileType->currentText() == "HIP2")
+        filter = "Hipparcos-2 data (*.dat)";
+
+    QString filename(
+            QFileDialog::getOpenFileName(this,
+                tr("Open data file"),
+                QString(),
+                filter));
     _ui->datafileName->setText(filename); // in case it's empty, placeholder will be displayed
 }
 
@@ -143,6 +153,8 @@ void MainWindow::_targetSelectionChanged(const QItemSelection& selected, const Q
         _ui->computationCommand->setEnabled(true);
     else
         _ui->computationCommand->setEnabled(false);
+
+    _ui->methodWarning->setVisible(_targetsSelected >= 12);
 }
 
 void MainWindow::computationThreadStarted()
