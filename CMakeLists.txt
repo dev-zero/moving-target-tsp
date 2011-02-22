@@ -10,6 +10,7 @@ set(QT_USE_QTGUI TRUE)
 set(QT_USE_QTOPENGL TRUE)
 include(${QT_USE_FILE})
 include_directories(${QT_INCLUDES})
+include_directories(./paradiseo-1.3-beta2/paradiseo-mo/src /usr/include/eo)
 
 add_executable(exhaustive-search exhaustive-search.cc
     cli/exhaustive-search.cxx parser/csv.cc parser/hip2.cc
@@ -43,4 +44,5 @@ add_executable(moving-target-tsp moving-target-tsp.cc
     common_calculation_functions.cc star.cc)
 target_link_libraries(moving-target-tsp
     ${QT_LIBRARIES}
-    -losg -losgViewer -losgQt)
+    -losg -losgViewer -losgQt
+    -leoutils -leo -les -lga -lcma)
