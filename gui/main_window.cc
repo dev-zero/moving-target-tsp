@@ -18,6 +18,10 @@
 // auto-generated
 #include "ui_simple.h"
 
+/*
+ * TODOs
+ * http://lists.trolltech.com/qt-interest/2008-04/thread00539-0.html
+ */
 
 MainWindow::MainWindow() :
     QMainWindow(),
@@ -40,6 +44,8 @@ MainWindow::MainWindow() :
     connect(_ui->computationCommand, SIGNAL(clicked()), this, SLOT(_computationCommand()));
 
     _ui->methodWarning->setVisible(false);
+
+    _ui->targetDetailsDock->setVisible(false);
 
     statusBar()->showMessage("ready");
 }
@@ -139,6 +145,30 @@ void MainWindow::_updateTargetNumbers()
 
 void MainWindow::_targetSelectionChanged(const QItemSelection& selected, const QItemSelection& deselected)
 {
+    QModelIndex currentIndex(_ui->targetsList->selectionModel()->currentIndex());
+    if (currentIndex.isValid())
+    {
+        const TargetDataQt& t(_targetsModel->data(currentIndex, Qt::UserRole + 1).value<TargetDataQt>());
+
+        // update base data
+        _ui->targetDetailsName->setText(t.name);
+        _ui->targetDetailsPosition->setText(QString("%1 / %2 / %3").arg(t.position[0]).arg(t.position[1]).arg(t.position[2]));
+        _ui->targetDetailsVelocity->setText(QString("%1 / %2 / %3").arg(t.velocity[0]).arg(t.velocity[1]).arg(t.velocity[2]));
+
+        if (t.data.size() > 0)
+        {
+            QString html_content("<html><title>Additional data</title><body><dl>");
+            const QString html_entry("<dt>%1</dt><dd>%2</dd>");
+            for (QMap<QString, QVariant>::const_iterator i(t.data.begin()), i_end(t.data.end()); i != i_end; ++i)
+            {
+                html_content += html_entry.arg(i.key()).arg(i.value().toString());
+            }
+            html_content += "</dl></body></html>";
+
+            _ui->targetDetailsWebView->setHtml(html_content);
+        }
+    }
+
     QModelIndex idx;
     unsigned int t_idx;
     foreach(idx, selected.indexes())
