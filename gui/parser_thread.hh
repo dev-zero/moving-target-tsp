@@ -19,6 +19,30 @@
 #include "target_data.hh"
 #include "common_calculation_functions.hh"
 
+template<typename T, size_t size>
+struct append_additional_data_helper
+{
+    static void append(QMap<QString, QVariant>& map, const T& t)
+    {
+        map.insert(HIP2::field_descriptions[size-1], std::get<size-1>(t));
+        append_additional_data_helper<T, size-1>::append(map, t);
+    }
+};
+
+template<typename T>
+struct append_additional_data_helper<T, 0>
+{
+    static void append(QMap<QString, QVariant>&, const T&)
+    {
+    }
+};
+
+template<typename T>
+void append_additional_data(QMap<QString, QVariant>& map, const T& t)
+{
+    append_additional_data_helper<T, std::tuple_size<T>::value>::append(map, t);
+}
+
 class ParserThread :
     public QThread
 {
@@ -84,7 +108,8 @@ private:
         TargetDataQt t(position, velocity, QString("hip id %1").arg(std::get<HIP2::ID>(d)));
 
         // hip2 does not have a description, but we might want to know the solutiontype until we get advanced filtering in the GUI
-        t.data.insert(QString("description"), QString("solutiontype: %1").arg(std::get<HIP2::SOLUTIONTYPE>(d)));
+        //t.data.insert(QString("description"), QString("solutiontype: %1").arg(std::get<HIP2::SOLUTIONTYPE>(d)));
+        append_additional_data(t.data, d);
 
         emit targetFound(t);
         return true;
