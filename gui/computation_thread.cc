@@ -334,6 +334,11 @@ void ComputationThread::run()
     else if (_method == "Simulated Annealing")
     {
         SimulatedAnnealing sa(_targets, _velocity, TargetDataQt(p_and_v, p_and_v, "origin"), _currentSACoolingSchedule);
+        emit log(QString("starting computing with initialT=%1 decreaseFactor=%2 equalSteps=%3 finalT=%4")
+                .arg(std::get<0>(_currentSACoolingSchedule))
+                .arg(std::get<1>(_currentSACoolingSchedule))
+                .arg(std::get<2>(_currentSACoolingSchedule))
+                .arg(std::get<3>(_currentSACoolingSchedule)));
         sa.compute_all();
         emit solutionFound(sa.get_shortest_path_target_position());
         emit log(QString("computation finished, total duration of the tour: %1").arg(sa.getSolutionTime()));
