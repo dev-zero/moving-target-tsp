@@ -35,13 +35,13 @@ public:
     {
         return _currentSACoolingSchedule;
     }
-    void setCurrentSACoolingSchedule(std::tuple<double, double, unsigned int, double>& newSACoolingSchedule)
-    {
-        _currentSACoolingSchedule = newSACoolingSchedule;
-    }
 public slots:
     void start(const QList<TargetDataQt>& targets, double velocity, const QString& method);
     void stop();
+    void setCurrentSACoolingSchedule(const std::tuple<double, double, unsigned int, double>& newSACoolingSchedule)
+    {
+        _currentSACoolingSchedule = newSACoolingSchedule;
+    }
 
 signals:
     void log(const QString&);
