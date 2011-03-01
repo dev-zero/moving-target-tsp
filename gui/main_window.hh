@@ -12,11 +12,12 @@
 
 #include <QMainWindow>
 #include <QItemSelection>
-
+#include <array>
+#include <tuple>
 #include "target_data.hh"
 
 // START: forward declarations
-namespace Ui { class MainWindow; }
+namespace Ui { class MainWindow; class SimulatedAnnealingDialog; }
 class ParserThread;
 class QStandardItemModel;
 // END: forward declarations
@@ -33,6 +34,7 @@ public:
 signals:
     void parsingRequested(const QString& filename, const QString& parsername);
     void computationRequested(const QList<TargetDataQt>&, double, const QString&);
+    void simulatedAnnealingCoolingScheduleChanged(const std::tuple<double, double, unsigned int, double>&);
     void computationStopRequested();
 
 public slots:
@@ -54,10 +56,17 @@ private slots:
 
     void _targetSelectionChanged(const QItemSelection&, const QItemSelection&);
 
+    void _changeMethodType(const QString&);
+    void _showMethodOptionsDialog();
+    void _methodOptionsDialogFinished(int);
+
     void _computationCommand();
 
 private:
     Ui::MainWindow* _ui;
+    Ui::SimulatedAnnealingDialog* _uiSADialog;
+    QDialog* _saDialog;
+
     QStandardItemModel* _targetsModel;
     qulonglong _targetsTotal;
     qulonglong _targetsSelected;

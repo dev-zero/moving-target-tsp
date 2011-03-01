@@ -9,6 +9,9 @@
 
 #include <QApplication>
 
+#include <tuple>
+#include <array>
+
 #include <osg/DisplaySettings>
 
 #include "gui/main_window.hh"
@@ -21,6 +24,7 @@ int main(int argc, char* argv[])
     // register our custom type for Qt meta object usage before everything else
     qRegisterMetaType<TargetDataQt>("TargetDataQt");
     qRegisterMetaType<QList<std::array<double,3>>>("QList<std::array<double,3>>");
+    qRegisterMetaType<std::tuple<double, double, unsigned int, double>>("std::tuple<double, unsigned int, double, double>");
 
     // initialize some osg subsystem settings (aka "yes, I want AA")
     osg::DisplaySettings::instance()->setNumMultiSamples(4);
@@ -35,9 +39,12 @@ int main(int argc, char* argv[])
     QObject::connect(&parserThread, SIGNAL(started()), &mainWindow, SLOT(parserThreadStarted()));
     QObject::connect(&parserThread, SIGNAL(finished()), &mainWindow, SLOT(parserThreadFinished()));
     QObject::connect(&parserThread, SIGNAL(targetFound(const TargetDataQt&)), &mainWindow, SLOT(addTarget(const TargetDataQt&)));
+
     QObject::connect(&mainWindow, SIGNAL(parsingRequested(const QString&, const QString&)), &parserThread, SLOT(start(const QString&, const QString&)));
     QObject::connect(&mainWindow, SIGNAL(computationRequested(const QList<TargetDataQt>&, double, const QString&)), &computationThread, SLOT(start(const QList<TargetDataQt>&, double, const QString&)));
     QObject::connect(&mainWindow, SIGNAL(computationStopRequested()), &computationThread, SLOT(stop()));
+    QObject::connect(&mainWindow, SIGNAL(simulatedAnnealingCoolingScheduleChanged(const std::tuple<double, double, unsigned int, double>&)), &computationThread, SLOT(setCurrentSACoolingSchedule(const std::tuple<double, double, unsigned int, double>&)));
+
     QObject::connect(&computationThread, SIGNAL(started()), &mainWindow, SLOT(computationThreadStarted()));
     QObject::connect(&computationThread, SIGNAL(finished()), &mainWindow, SLOT(computationThreadFinished()));
     QObject::connect(&computationThread, SIGNAL(log(const QString&)), &mainWindow, SLOT(logToConsole(const QString&)));

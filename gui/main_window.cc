@@ -17,6 +17,7 @@
 
 // auto-generated
 #include "ui_simple.h"
+#include "ui_simulated_annealing_cooling_schedule.h"
 
 /*
  * TODOs
@@ -32,6 +33,10 @@ MainWindow::MainWindow() :
     _ui = new Ui::MainWindow;
     _ui->setupUi(this);
 
+    _saDialog = new QDialog(this);
+    _uiSADialog = new Ui::SimulatedAnnealingDialog;
+    _uiSADialog->setupUi(_saDialog);
+
     connect(_ui->datafileBrowse, SIGNAL(clicked()), this, SLOT(_datafileOpen()));
     connect(_ui->datafileLoad, SIGNAL(clicked()), this, SLOT(_datafileLoad()));
 
@@ -42,6 +47,10 @@ MainWindow::MainWindow() :
             this, SLOT(_targetSelectionChanged(const QItemSelection&, const QItemSelection&)));
 
     connect(_ui->computationCommand, SIGNAL(clicked()), this, SLOT(_computationCommand()));
+
+    connect(_ui->methodType, SIGNAL(activated(const QString&)), this, SLOT(_changeMethodType(const QString&)));
+    connect(_ui->methodOptions, SIGNAL(clicked()), this, SLOT(_showMethodOptionsDialog()));
+    connect(_saDialog, SIGNAL(finished(int)), this, SLOT(_methodOptionsDialogFinished(int)));
 
     _ui->methodWarning->setVisible(false);
 
@@ -234,4 +243,28 @@ void MainWindow::displayPath(const QList<std::array<double,3>>& list)
 {
     logToConsole("found a path, drawing...");
     _ui->renderingWidget->displayPath(list);
+}
+
+void MainWindow::_changeMethodType(const QString& type)
+{
+    if (type == "Simulated Annealing")
+        _ui->methodOptions->setEnabled(true);
+    else
+        _ui->methodOptions->setEnabled(false);
+}
+
+void MainWindow::_showMethodOptionsDialog()
+{
+    if (_ui->methodType->currentText() == "Simulated Annealing")
+        _saDialog->setVisible(true);
+}
+
+void MainWindow::_methodOptionsDialogFinished(int result)
+{
+    if (result == QDialog::Accepted)
+        emit simulatedAnnealingCoolingScheduleChanged(std::make_tuple(
+                    _uiSADialog->initialTemperature->value(),
+                    _uiSADialog->decreaseFactor->value(),
+                    _uiSADialog->equalTemperatureSteps->value(),
+                    _uiSADialog->finalTemperature->value()));
 }
