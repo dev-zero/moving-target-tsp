@@ -8,6 +8,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wold-style-cast -Wredunda
 find_package(Qt4 REQUIRED)
 set(QT_USE_QTGUI TRUE)
 set(QT_USE_QTOPENGL TRUE)
+set(QT_USE_QTWEBKIT TRUE)
 include(${QT_USE_FILE})
 include_directories(${QT_INCLUDES})
 include_directories(./paradiseo-1.3-beta2/paradiseo-mo/src /usr/include/eo)
