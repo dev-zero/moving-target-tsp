@@ -198,13 +198,14 @@ public:
 class SimulatedAnnealing
 {
 public:
-    SimulatedAnnealing(const QList<TargetDataQt>& targets, double velocity, const TargetDataQt& origin, double start_time = 0.0) :
+    SimulatedAnnealing(const QList<TargetDataQt>& targets, double velocity, const TargetDataQt& origin, const std::tuple<double, unsigned int, double, double>& SACoolingSchedule, double start_time = 0.0) :
         _done(false),
         _targets(targets),
         _velocity(velocity),
         _origin(origin),
         _start_time(start_time),
-        _found_solution(false)
+        _found_solution(false),
+        _saCoolingSchedule(SACoolingSchedule)
     {
     }
 
@@ -219,7 +220,12 @@ public:
         eoInitPermutation<MovingTargetTSP> init(_targets.size());
         moFullEvalByCopy<ShiftNeighbor> shiftEval(fullEval);
         RndShiftNeighborhood rndShiftNH((_targets.size()-1) * (_targets.size()-1));
-        moSA<ShiftNeighbor> localSearch(rndShiftNH, fullEval, shiftEval);
+        moSimpleCoolingSchedule<MovingTargetTSP> coolingSchedule(
+                std::get<0>(_saCoolingSchedule), 
+                std::get<1>(_saCoolingSchedule), 
+                std::get<2>(_saCoolingSchedule), 
+                std::get<3>(_saCoolingSchedule));
+        moSA<ShiftNeighbor> localSearch(rndShiftNH, fullEval, shiftEval, coolingSchedule);
 
         init(_solution);
         fullEval(_solution);
@@ -295,6 +301,7 @@ private:
     const double _start_time;
     bool _found_solution;
     MovingTargetTSP _solution;
+    std::tuple<double, unsigned int, double, double> _saCoolingSchedule;
 };
 
 void ComputationThread::run()
@@ -326,7 +333,7 @@ void ComputationThread::run()
     }
     else if (_method == "Simulated Annealing")
     {
-        SimulatedAnnealing sa(_targets, _velocity, TargetDataQt(p_and_v, p_and_v, "origin"));
+        SimulatedAnnealing sa(_targets, _velocity, TargetDataQt(p_and_v, p_and_v, "origin"), _currentSACoolingSchedule);
         sa.compute_all();
         emit solutionFound(sa.get_shortest_path_target_position());
         emit log(QString("computation finished, total duration of the tour: %1").arg(sa.getSolutionTime()));
