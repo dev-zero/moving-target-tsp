@@ -25,8 +25,11 @@ target_link_libraries(parser_hip2_TEST -lgtest -lpthread)
 add_executable(star_TEST star.cc star_TEST.cc)
 target_link_libraries(star_TEST -losg -losgViewer)
 
-QT4_WRAP_UI(simplegui_UIS_H gui/simple.ui)
-QT4_WRAP_CPP(viewer_widget_MOC_SRCS gui/viewer_widget.hh gui/main_window.hh
+QT4_WRAP_UI(simplegui_UIS_H
+    gui/simple.ui
+    gui/simulated_annealing_cooling_schedule.ui)
+QT4_WRAP_CPP(viewer_widget_MOC_SRCS
+    gui/viewer_widget.hh gui/main_window.hh
     gui/parser_thread.hh gui/computation_thread.hh)
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 #add_executable(simplegui exhaustive-search-gui.cc
