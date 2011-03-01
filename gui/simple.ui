@@ -272,6 +272,9 @@
         </item>
         <item row="2" column="0" colspan="4">
          <widget class="QPushButton" name="methodOptions">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>Options...</string>
           </property>
@@ -412,6 +415,9 @@
    </widget>
   </widget>
   <widget class="QDockWidget" name="targetDetailsDock">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="minimumSize">
     <size>
      <width>116</width>
