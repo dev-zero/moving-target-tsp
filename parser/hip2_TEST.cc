@@ -62,7 +62,7 @@ TEST_F(HIP2ParserTest, LoadValidLines)
     /* should we have to add more data is the idea to bind a shared_ptr<std::vector<datastruct>>,
      * where datastruct contains the values of one entry */
     unsigned int runs(0);
-    parser(valid_line, std::bind(&check_counter_appender_func,
+    parser(valid_line, static_cast<HIP2::Parser::appender_func>(std::bind(&check_counter_appender_func,
                 std::placeholders::_1,
                 std::placeholders::_2,
                 std::placeholders::_3,
@@ -72,7 +72,7 @@ TEST_F(HIP2ParserTest, LoadValidLines)
                 std::placeholders::_7,
                 std::placeholders::_8,
                 std::placeholders::_9,
-                1, 5, 0.0000159148, 0.0190068680, 4.55, 1.33, -4.55, -1.19, 0.482, std::ref(runs)));
+                1, 5, 0.0000159148, 0.0190068680, 4.55, 1.33, -4.55, -1.19, 0.482, std::ref(runs))));
     ASSERT_EQ(runs, 1);
 }
 
