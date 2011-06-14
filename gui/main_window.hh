@@ -18,8 +18,9 @@
 
 // START: forward declarations
 namespace Ui { class MainWindow; class SimulatedAnnealingDialog; }
-class ParserThread;
+class QStandardItem;
 class QStandardItemModel;
+class TargetManager;
 // END: forward declarations
 
 class MainWindow :
@@ -40,21 +41,22 @@ signals:
 public slots:
     void logToConsole(const QString&);
 
+#if 0
     void parserThreadStarted();
     void parserThreadFinished();
 
     void addTarget(const TargetDataQt&);
-
+#endif
     void computationThreadStarted();
     void computationThreadFinished();
 
-    void displayPath(const QList<std::array<double,3>>&);
+    void displayPath(const QList<std::array<double,3>>&, double time, double length);
 
 private slots:
-    void _datafileOpen();
-    void _datafileLoad();
+//    void _datafileOpen();
+//    void _datafileLoad();
 
-    void _targetSelectionChanged(const QItemSelection&, const QItemSelection&);
+    void _addTargetObject(QStandardItem*);
 
     void _changeMethodType(const QString&);
     void _showMethodOptionsDialog();
@@ -62,17 +64,21 @@ private slots:
 
     void _computationCommand();
 
+    void _updateVelocityFromUnits(double);
+    void _updateVelocityFromFractions(double);
+
+    void _updateNumberOfTargets(int);
+
 private:
     Ui::MainWindow* _ui;
+    TargetManager* _targetManager;
+
     Ui::SimulatedAnnealingDialog* _uiSADialog;
     QDialog* _saDialog;
 
     QStandardItemModel* _targetsModel;
-    qulonglong _targetsTotal;
-    qulonglong _targetsSelected;
-    bool _computationRunning;
 
-    void _updateTargetNumbers();
+    bool _computationRunning;
 };
 
 #endif // MAIN_WINDOW_HH

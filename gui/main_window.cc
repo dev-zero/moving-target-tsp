@@ -8,12 +8,15 @@
  */
 
 #include "main_window.hh"
+#include "gui/target_manager.hh"
+#include "utils/common_calculation_functions.hh"
 
 #include <QFileDialog>
 #include <QStatusBar>
 #include <QMessageBox>
 #include <QStandardItemModel>
 #include <QLocale>
+#include <QDebug>
 
 // auto-generated
 #include "ui_simple.h"
@@ -26,25 +29,29 @@
 
 MainWindow::MainWindow() :
     QMainWindow(),
-    _targetsTotal(0),
-    _targetsSelected(0),
     _computationRunning(false)
 {
     _ui = new Ui::MainWindow;
     _ui->setupUi(this);
 
+    _targetsModel = new QStandardItemModel;
+    QStringList targetsModelHeader;
+    targetsModelHeader << "Identifier" << "Position" << "Velocity";
+    _targetsModel->setHorizontalHeaderLabels(targetsModelHeader);
+    _targetManager = new TargetManager(_targetsModel, this);
+
     _saDialog = new QDialog(this);
     _uiSADialog = new Ui::SimulatedAnnealingDialog;
     _uiSADialog->setupUi(_saDialog);
 
-    connect(_ui->datafileBrowse, SIGNAL(clicked()), this, SLOT(_datafileOpen()));
-    connect(_ui->datafileLoad, SIGNAL(clicked()), this, SLOT(_datafileLoad()));
-
-    _targetsModel = new QStandardItemModel;
     _ui->targetsList->setModel(_targetsModel);
 
-    connect(_ui->targetsList->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&, const QItemSelection&)),
-            this, SLOT(_targetSelectionChanged(const QItemSelection&, const QItemSelection&)));
+    connect(_targetManager, SIGNAL(targetAdded(QStandardItem*)), SLOT(_addTargetObject(QStandardItem*)));
+    // TODO: we currently can't remove items since it would change our associated index
+    connect(_targetManager, SIGNAL(targetRemoved(unsigned int)), _ui->renderingWidget, SLOT(disableTarget(unsigned int)));
+    connect(_targetManager, SIGNAL(allTargetsRemoved()), _ui->renderingWidget, SLOT(clear()));
+
+    connect(_ui->openTargetManager, SIGNAL(clicked()), _targetManager, SLOT(open()));
 
     connect(_ui->computationCommand, SIGNAL(clicked()), this, SLOT(_computationCommand()));
 
@@ -52,6 +59,10 @@ MainWindow::MainWindow() :
     connect(_ui->methodOptions, SIGNAL(clicked()), this, SLOT(_showMethodOptionsDialog()));
     connect(_saDialog, SIGNAL(finished(int)), this, SLOT(_methodOptionsDialogFinished(int)));
 
+    connect(_ui->velocity, SIGNAL(valueChanged(double)), SLOT(_updateVelocityFromUnits(double)));
+    connect(_ui->velocityFractions, SIGNAL(valueChanged(double)), SLOT(_updateVelocityFromFractions(double)));
+
+    connect(_targetManager, SIGNAL(numberOfTargetsChanged(int)), SLOT(_updateNumberOfTargets(int)));
     _ui->methodWarning->setVisible(false);
 
     _ui->targetDetailsDock->setVisible(false);
@@ -70,143 +81,81 @@ void MainWindow::logToConsole(const QString& text)
     _ui->consoleOutput->appendPlainText(text);    
 }
 
-void MainWindow::_datafileOpen()
+void MainWindow::_updateNumberOfTargets(int number)
 {
-    QString filter("Comma-separate value list (*.txt *.csv)");
-    if (_ui->datafileType->currentText() == "HIP2")
-        filter = "Hipparcos-2 data (*.dat)";
-
-    QString filename(
-            QFileDialog::getOpenFileName(this,
-                tr("Open data file"),
-                QString(),
-                filter));
-    _ui->datafileName->setText(filename); // in case it's empty, placeholder will be displayed
-}
-
-void MainWindow::_datafileLoad()
-{
-    if (_ui->datafileName->text().isEmpty())
-    {
-        QMessageBox::warning(this, windowTitle(), tr("No file specified"));
-        return;
-    }
-    _ui->datafileLoad->setEnabled(false);
-    logToConsole(
-            QString("loading file %1 using the %2 parser").
-            arg(_ui->datafileName->text()).
-            arg(_ui->datafileType->currentText()));
-    emit parsingRequested(
-            _ui->datafileName->text(),
-            _ui->datafileType->currentText());
-}
-
-void MainWindow::parserThreadStarted()
-{
-    logToConsole("parsing started");
-    _targetsModel->clear();
-    _ui->renderingWidget->clear();
-    _targetsTotal = _targetsSelected = 0;
-    _updateTargetNumbers();
-}
-
-void MainWindow::parserThreadFinished()
-{
-    logToConsole("parsing finished");
-    _ui->datafileLoad->setEnabled(true);
-    _updateTargetNumbers();
-
-    if (_ui->datafileType->currentText() == "CSV")
-        _ui->methodVelocityUnit->setText("units");
-    else if (_ui->datafileType->currentText() == "HIP2")
-        _ui->methodVelocityUnit->setText("parsec/year (=~ 9.78*10^8 m/s)");
-}
-
-void MainWindow::addTarget(const TargetDataQt& t)
-{
-    QString line(t.name);
-
-    /* if the additional data contains a description,
-     * append it to the name */
-
-    QMap<QString, QVariant>::const_iterator f;
-
-    f = t.data.find("description");
-    if (f != t.data.end())
-        line += QString(" (%1)").arg(f->toString());
-
-    QStandardItem* item(new QStandardItem(line));
-    item->setData(QVariant::fromValue(t), Qt::UserRole + 1);
-
-    unsigned int idx(_ui->renderingWidget->addTarget(t));
-    item->setData(QVariant::fromValue(idx), Qt::UserRole + 2); // first role idx is used for TargetDataQt
-
-    _targetsModel->appendRow(item);
-
-    ++_targetsTotal;
-}
-
-void MainWindow::_updateTargetNumbers()
-{
-    _ui->targetsSelected->setText(QLocale().toString(_targetsSelected));
-    _ui->targetsTotal->setText(QLocale().toString(_targetsTotal));
-}
-
-void MainWindow::_targetSelectionChanged(const QItemSelection& selected, const QItemSelection& deselected)
-{
-    QModelIndex currentIndex(_ui->targetsList->selectionModel()->currentIndex());
-    if (currentIndex.isValid())
-    {
-        const TargetDataQt& t(_targetsModel->data(currentIndex, Qt::UserRole + 1).value<TargetDataQt>());
-
-        // update base data
-        _ui->targetDetailsName->setText(t.name);
-        _ui->targetDetailsPosition->setText(QString("%1 / %2 / %3").arg(t.position[0]).arg(t.position[1]).arg(t.position[2]));
-        _ui->targetDetailsVelocity->setText(QString("%1 / %2 / %3").arg(t.velocity[0]).arg(t.velocity[1]).arg(t.velocity[2]));
-
-        if (t.data.size() > 0)
-        {
-            QString html_content("<html><title>Additional data</title><body><dl>");
-            const QString html_entry("<dt>%1</dt><dd>%2</dd>");
-            for (QMap<QString, QVariant>::const_iterator i(t.data.begin()), i_end(t.data.end()); i != i_end; ++i)
-            {
-                html_content += html_entry.arg(i.key()).arg(i.value().toString());
-            }
-            html_content += "</dl></body></html>";
-
-            _ui->targetDetailsWebView->setHtml(html_content);
-        }
-    }
-
-    QModelIndex idx;
-    unsigned int t_idx;
-    foreach(idx, selected.indexes())
-    {
-        t_idx = _targetsModel->data(idx, Qt::UserRole + 2).value<unsigned int>();
-        _ui->renderingWidget->enableTarget(t_idx);
-    }
-    foreach(idx, deselected.indexes())
-    {
-        t_idx = _targetsModel->data(idx, Qt::UserRole + 2).value<unsigned int>();
-        _ui->renderingWidget->disableTarget(t_idx);
-    }
-    _targetsSelected += selected.indexes().size() - deselected.indexes().size();
-    _updateTargetNumbers();
-
-    if (_targetsSelected > 0)
+    qDebug() << "updating number of targets: " << number;
+    _ui->targetsTotal->setText(QLocale().toString(number));
+    if (number > 0)
         _ui->computationCommand->setEnabled(true);
     else
         _ui->computationCommand->setEnabled(false);
-
-    _ui->methodWarning->setVisible(_targetsSelected >= 12);
 }
+
+void MainWindow::_addTargetObject(QStandardItem* item)
+{
+    TargetDataQt t(item->data(Qt::UserRole + 1).value<TargetDataQt>());
+    qDebug() << "adding rendering target for target " << t.name;
+    unsigned int idx(_ui->renderingWidget->addTarget(t));
+    _ui->renderingWidget->enableTarget(idx);
+    item->setData(QVariant::fromValue(idx), Qt::UserRole + 2);
+}
+
+// some leftovers...
+// TODO: the html_content-update is currently missing and needs to be re-integrated
+/*
+   QModelIndex currentIndex(_ui->targetsList->selectionModel()->currentIndex());
+   if (currentIndex.isValid())
+   {
+   const TargetDataQt& t(_targetsModel->data(currentIndex, Qt::UserRole + 1).value<TargetDataQt>());
+
+// update base data
+_ui->targetDetailsName->setText(t.name);
+_ui->targetDetailsPosition->setText(QString("%1 / %2 / %3").arg(t.position[0]).arg(t.position[1]).arg(t.position[2]));
+_ui->targetDetailsVelocity->setText(QString("%1 / %2 / %3").arg(t.velocity[0]).arg(t.velocity[1]).arg(t.velocity[2]));
+
+if (t.data.size() > 0)
+{
+QString html_content("<html><title>Additional data</title><body><dl>");
+const QString html_entry("<dt>%1</dt><dd>%2</dd>");
+for (QMap<QString, QVariant>::const_iterator i(t.data.begin()), i_end(t.data.end()); i != i_end; ++i)
+{
+html_content += html_entry.arg(i.key()).arg(i.value().toString());
+}
+html_content += "</dl></body></html>";
+
+_ui->targetDetailsWebView->setHtml(html_content);
+}
+}
+
+QModelIndex idx;
+unsigned int t_idx;
+foreach(idx, selected.indexes())
+{
+t_idx = _targetsModel->data(idx, Qt::UserRole + 2).value<unsigned int>();
+_ui->renderingWidget->enableTarget(t_idx);
+}
+foreach(idx, deselected.indexes())
+{
+t_idx = _targetsModel->data(idx, Qt::UserRole + 2).value<unsigned int>();
+_ui->renderingWidget->disableTarget(t_idx);
+}
+_targetsSelected += selected.indexes().size() - deselected.indexes().size();
+_updateTargetNumbers();
+
+if (_targetsSelected > 0)
+_ui->computationCommand->setEnabled(true);
+else
+_ui->computationCommand->setEnabled(false);
+
+_ui->methodWarning->setVisible(_targetsSelected >= 12);
+*/
 
 void MainWindow::computationThreadStarted()
 {
     logToConsole("computation started");
     _computationRunning = true;
     _ui->computationCommand->setText("Abort computation");
-    _ui->datafileSection->setEnabled(false);
+    _ui->openTargetManager->setEnabled(false);
     _ui->targetsSection->setEnabled(false);
     _ui->methodSection->setEnabled(false);
 }
@@ -216,7 +165,7 @@ void MainWindow::computationThreadFinished()
     logToConsole("computation finished");
     _computationRunning = false;
     _ui->computationCommand->setText("Start computation");
-    _ui->datafileSection->setEnabled(true);
+    _ui->openTargetManager->setEnabled(true);
     _ui->targetsSection->setEnabled(true);
     _ui->methodSection->setEnabled(true);
 }
@@ -230,19 +179,21 @@ void MainWindow::_computationCommand()
     else
     {
         QList<TargetDataQt> targets;
-        QModelIndex idx;
-        foreach(idx, _ui->targetsList->selectionModel()->selectedIndexes())
-        {
-            targets.push_back(idx.data(Qt::UserRole + 1).value<TargetDataQt>());
-        }
-        emit computationRequested(targets, _ui->methodVelocity->value(), _ui->methodType->currentText());
+        for (int i(0); i < _targetsModel->rowCount(); ++i)
+            targets.push_back(_targetsModel->item(i)->data(Qt::UserRole + 1).value<TargetDataQt>());
+        emit computationRequested(targets, _ui->velocity->value(), _ui->methodType->currentText());
     }
 }
 
-void MainWindow::displayPath(const QList<std::array<double,3>>& list)
+void MainWindow::displayPath(const QList<std::array<double,3>>& list, double time, double length)
 {
     logToConsole("found a path, drawing...");
     _ui->renderingWidget->displayPath(list);
+    _ui->totalExternalTime->setText(QLocale().toString(time) + " years");
+    const double velocity(parsec_per_year2meters_per_second(_ui->velocity->value()));
+    const double internalTime(time*sqrt(1.0-((velocity*velocity)/(physical_constants::c*physical_constants::c))));
+    _ui->totalInternalTime->setText(QLocale().toString(internalTime) + " years");
+    _ui->totalLength->setText(QLocale().toString(length) + " parsec");
 }
 
 void MainWindow::_changeMethodType(const QString& type)
@@ -267,4 +218,14 @@ void MainWindow::_methodOptionsDialogFinished(int result)
                     _uiSADialog->decreaseFactor->value(),
                     _uiSADialog->equalTemperatureSteps->value(),
                     _uiSADialog->finalTemperature->value()));
+}
+
+void MainWindow::_updateVelocityFromUnits(double v)
+{
+    _ui->velocityFractions->setValue(parsec_per_year2fractions_of_c(v));
+}
+
+void MainWindow::_updateVelocityFromFractions(double v)
+{
+    _ui->velocity->setValue(fractions_of_c2parsec_per_year(v));
 }

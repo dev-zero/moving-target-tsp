@@ -1,0 +1,9 @@
+<RCC>
+  <qresource>
+    <file>list-remove.svg</file>
+    <file>edit-clear.svg</file>
+    <file>document-open.svg</file>
+    <file>document-save.svg</file>
+    <file>go-previous.svg</file>
+  </qresource>
+</RCC>

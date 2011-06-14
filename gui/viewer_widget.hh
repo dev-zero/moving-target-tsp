@@ -107,18 +107,6 @@ public:
         addStarToRoot(_root, t.position[0], t.position[1], t.position[2], 0.01, osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f));
         return _root->getNumChildren()-1; // the inserted item is supposed to be the last one. Is that really true? ... premisse: addStarToRoot adds only one child
     }
-    void clear()
-    {
-        _root->removeChildren(0, _root->getNumChildren());
-    }
-    void enableTarget(unsigned int idx)
-    {
-        _root->setValue(idx, true);
-    }
-    void disableTarget(unsigned int idx)
-    {
-        _root->setValue(idx, false);
-    }
 
     void displayPath(const QList<std::array<double,3>>& list)
     {
@@ -142,6 +130,20 @@ public:
 
         _path = path.get();
         _root->setNewChildDefaultValue(false);
+    }
+
+public slots:
+    void clear()
+    {
+        _root->removeChildren(0, _root->getNumChildren());
+    }
+    void enableTarget(unsigned int idx)
+    {
+        _root->setValue(idx, true);
+    }
+    void disableTarget(unsigned int idx)
+    {
+        _root->setValue(idx, false);
     }
 protected:
     QTimer _timer;
