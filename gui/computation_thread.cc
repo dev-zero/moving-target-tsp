@@ -121,6 +121,11 @@ public:
         return _targets[m].position + _shortest_path_times[n+1]*_targets[m].velocity;
     }
 
+    double getSolutionTime() const
+    {
+        return _shortest_path_time;
+    }
+
 private:
     bool _done;
     const QList<TargetDataQt>& _targets; // TODO: dangerous
@@ -304,6 +309,16 @@ private:
     std::tuple<double, unsigned int, double, double> _saCoolingSchedule;
 };
 
+double tourLength(const QList<std::array<double,3>>& list)
+{
+    double length(0.0);
+    for (QList<std::array<double,3>>::size_type i(0), i_end(list.count()-1); i < i_end; ++i)
+    {
+        length += sqrt( inner_prod( list.at(i+1)-list.at(i), list.at(i+1)-list.at(i) ) );
+    }
+    length += sqrt( inner_prod( list.last()-list.first(), list.last()-list.first() ) );
+}
+
 void ComputationThread::run()
 {
     _stop = false;
@@ -328,7 +343,8 @@ void ComputationThread::run()
                 list << es.get_shortest_path_target_position(n);
             }
             list << origin;
-            emit solutionFound(list);
+
+            emit solutionFound(list, es.getSolutionTime(), tourLength(list));
         }
     }
     else if (_method == "Simulated Annealing")
@@ -340,7 +356,8 @@ void ComputationThread::run()
                 .arg(std::get<2>(_currentSACoolingSchedule))
                 .arg(std::get<3>(_currentSACoolingSchedule)));
         sa.compute_all();
-        emit solutionFound(sa.get_shortest_path_target_position());
+        QList<std::array<double,3>> list(sa.get_shortest_path_target_position());
+        emit solutionFound(list, sa.getSolutionTime(), tourLength(list));
         emit log(QString("computation finished, total duration of the tour: %1").arg(sa.getSolutionTime()));
     }
     else

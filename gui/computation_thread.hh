@@ -45,7 +45,11 @@ public slots:
 
 signals:
     void log(const QString&);
-    void solutionFound(const QList<std::array<double,3>>&);
+
+    /*
+     * returns the position of the encounters, the total (external) time and the complete length
+     */
+    void solutionFound(const QList<std::array<double,3>>&, double, double);
 
 private:
     bool _stop;
