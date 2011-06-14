@@ -81,7 +81,16 @@ namespace equatorial2galactic_constants
     const static double C3 = 33.0;
 }
 
+namespace physical_constants
+{
+    const static double c = 299792458.0;
+}
 void equatorial2galactic(const double& delta, const double& alpha, double& b, double& l);
 
 void equatorial2cartesian(const double& delta, const double& alpha, const double& plx, const double& plx_err, double& x, double& y, double& z);
+
+double parsec_per_year2fractions_of_c(const double& v);
+double fractions_of_c2parsec_per_year(const double& v);
+double parsec_per_year2meters_per_second(const double& v);
+
 #endif // COMMON_CALCULATION_FUNCTIONS_HH

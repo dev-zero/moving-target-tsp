@@ -109,3 +109,22 @@ void equatorial2cartesian(const double& delta, const double& alpha, const double
     y = r*cos(b)*sin(l);
     z = r*sin(b);
 }
+
+const double seconds_per_year(86400.0);
+const double parsec_in_m(30.856776e15);
+
+double parsec_per_year2meters_per_second(const double& v)
+{
+    return v*parsec_in_m/seconds_per_year;
+}
+
+double parsec_per_year2fractions_of_c(const double& v)
+{
+    return (v*parsec_in_m/seconds_per_year)/physical_constants::c;
+}
+
+double fractions_of_c2parsec_per_year(const double& v)
+{
+    return (v*physical_constants::c)*seconds_per_year/parsec_in_m;
+}
+
