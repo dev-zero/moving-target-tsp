@@ -17,7 +17,7 @@
 #include "parser/csv.hh"
 #include "parser/hip2.hh"
 #include "target_data.hh"
-#include "common_calculation_functions.hh"
+#include "utils/common_calculation_functions.hh"
 
 template<typename T, size_t size>
 struct append_additional_data_helper

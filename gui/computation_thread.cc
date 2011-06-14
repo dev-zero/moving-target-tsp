@@ -28,7 +28,7 @@
 #include <problems/permutation/moShiftNeighbor.h>
 #include <neighborhood/moRndWithReplNeighborhood.h>
 
-#include "common_calculation_functions.hh"
+#include "utils/common_calculation_functions.hh"
 #include "computation_thread.hh"
 
 class ExhaustiveSearch

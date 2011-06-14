@@ -25,7 +25,7 @@
 #include "parser/hip2.hh"
 #include "cli/exhaustive-search.hxx"
 #include "star.hh"
-#include "common_calculation_functions.hh"
+#include "utils/common_calculation_functions.hh"
 
 class MovingTargetTSP
 {
