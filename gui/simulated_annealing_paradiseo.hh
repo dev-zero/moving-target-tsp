@@ -112,10 +112,10 @@ public:
     }
 };
 
-class SimulatedAnnealing
+class SimulatedAnnealingParadiseo
 {
 public:
-    SimulatedAnnealing(const QList<TargetDataQt>& targets, double velocity, const TargetDataQt& origin, const std::tuple<double, unsigned int, double, double>& SACoolingSchedule, double start_time = 0.0) :
+    SimulatedAnnealingParadiseo(const QList<TargetDataQt>& targets, double velocity, const TargetDataQt& origin, const std::tuple<double, unsigned int, double, double>& SACoolingSchedule, double start_time = 0.0) :
         _done(false),
         _targets(targets),
         _velocity(velocity),
