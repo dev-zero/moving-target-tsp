@@ -10,9 +10,10 @@
 #ifndef COMPUTATION_THREAD_HH
 #define COMPUTATION_THREAD_HH
 
-#include <QThread>
-#include <QString>
-#include <QList>
+#include <QtCore/QThread>
+#include <QtCore/QString>
+#include <QtCore/QList>
+
 #include <array>
 #include <tuple>
 
