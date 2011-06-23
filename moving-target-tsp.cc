@@ -15,7 +15,6 @@
 #include <osg/DisplaySettings>
 
 #include "gui/main_window.hh"
-#include "gui/computation_thread.hh"
 #include "gui/target_data.hh"
 
 int main(int argc, char* argv[])
@@ -30,17 +29,6 @@ int main(int argc, char* argv[])
 
     QApplication app(argc, argv);
     MainWindow mainWindow;
-    ComputationThread computationThread;
-
-    // wire things up
-    QObject::connect(&mainWindow, SIGNAL(computationRequested(const QList<TargetDataQt>&, double, const QString&)), &computationThread, SLOT(start(const QList<TargetDataQt>&, double, const QString&)));
-    QObject::connect(&mainWindow, SIGNAL(computationStopRequested()), &computationThread, SLOT(stop()));
-    QObject::connect(&mainWindow, SIGNAL(simulatedAnnealingCoolingScheduleChanged(const std::tuple<double, double, unsigned int, double>&)), &computationThread, SLOT(setCurrentSACoolingSchedule(const std::tuple<double, double, unsigned int, double>&)));
-
-    QObject::connect(&computationThread, SIGNAL(started()), &mainWindow, SLOT(computationThreadStarted()));
-    QObject::connect(&computationThread, SIGNAL(finished()), &mainWindow, SLOT(computationThreadFinished()));
-    QObject::connect(&computationThread, SIGNAL(log(const QString&)), &mainWindow, SLOT(logToConsole(const QString&)));
-    QObject::connect(&computationThread, SIGNAL(solutionFound(const QList<std::array<double,3>>&, double, double)), &mainWindow, SLOT(displayPath(const QList<std::array<double,3>>&, double, double)));
 
     mainWindow.show();
     return app.exec();

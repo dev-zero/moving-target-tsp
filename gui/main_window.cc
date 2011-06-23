@@ -9,6 +9,7 @@
 
 #include "main_window.hh"
 #include "gui/target_manager.hh"
+#include "gui/computation_manager.hh"
 #include "utils/common_calculation_functions.hh"
 
 #include <QFileDialog>
@@ -34,12 +35,12 @@ MainWindow::MainWindow() :
     _ui = new Ui::MainWindow;
     _ui->setupUi(this);
 
-    _targetsModel = new QStandardItemModel;
+    _targetsModel = new QStandardItemModel(this);
     QStringList targetsModelHeader;
     targetsModelHeader << "Identifier" << "Position" << "Velocity";
     _targetsModel->setHorizontalHeaderLabels(targetsModelHeader);
     _targetManager = new TargetManager(_targetsModel, this);
-
+    
     _saDialog = new QDialog(this);
     _uiSADialog = new Ui::SimulatedAnnealingDialog;
     _uiSADialog->setupUi(_saDialog);
@@ -66,6 +67,11 @@ MainWindow::MainWindow() :
     _ui->methodWarning->setVisible(false);
 
     _ui->targetDetailsDock->setVisible(false);
+
+    _computationManager = new ComputationManager(this);
+    connect(_computationManager, SIGNAL(started()), SLOT(_computationStarted()));
+    connect(_computationManager, SIGNAL(finished()), SLOT(_computationFinished()));
+    connect(_computationManager, SIGNAL(solutionFound(const QList<std::array<double,3>>&, double, double)), SLOT(_displayPath(const QList<std::array<double,3>>&, double, double)));
 
     statusBar()->showMessage("ready");
 }
@@ -150,7 +156,7 @@ _ui->computationCommand->setEnabled(false);
 _ui->methodWarning->setVisible(_targetsSelected >= 12);
 */
 
-void MainWindow::computationThreadStarted()
+void MainWindow::_computationStarted()
 {
     logToConsole("computation started");
     _computationRunning = true;
@@ -160,7 +166,7 @@ void MainWindow::computationThreadStarted()
     _ui->methodSection->setEnabled(false);
 }
 
-void MainWindow::computationThreadFinished()
+void MainWindow::_computationFinished()
 {
     logToConsole("computation finished");
     _computationRunning = false;
@@ -173,19 +179,20 @@ void MainWindow::computationThreadFinished()
 void MainWindow::_computationCommand()
 {
     if (_computationRunning)
-    {
-        emit computationStopRequested();
-    }
+        emit _computationManager->abort();
     else
     {
         QList<TargetDataQt> targets;
         for (int i(0); i < _targetsModel->rowCount(); ++i)
             targets.push_back(_targetsModel->item(i)->data(Qt::UserRole + 1).value<TargetDataQt>());
-        emit computationRequested(targets, _ui->velocity->value(), _ui->methodType->currentText());
+
+        _computationManager->switchAlgorithm(_ui->methodType->currentText());
+        _computationManager->setData(targets, _ui->velocity->value());
+        _computationManager->start();
     }
 }
 
-void MainWindow::displayPath(const QList<std::array<double,3>>& list, double time, double length)
+void MainWindow::_displayPath(const QList<std::array<double,3>>& list, double time, double length)
 {
     logToConsole("found a path, drawing...");
     _ui->renderingWidget->displayPath(list);

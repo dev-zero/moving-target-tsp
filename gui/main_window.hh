@@ -16,12 +16,12 @@
 #include <tuple>
 #include "target_data.hh"
 
-// START: forward declarations
+/// forward declarations
 namespace Ui { class MainWindow; class SimulatedAnnealingDialog; }
 class QStandardItem;
 class QStandardItemModel;
 class TargetManager;
-// END: forward declarations
+class ComputationManager;
 
 class MainWindow :
     public QMainWindow
@@ -47,10 +47,7 @@ public slots:
 
     void addTarget(const TargetDataQt&);
 #endif
-    void computationThreadStarted();
-    void computationThreadFinished();
 
-    void displayPath(const QList<std::array<double,3>>&, double time, double length);
 
 private slots:
 //    void _datafileOpen();
@@ -69,9 +66,15 @@ private slots:
 
     void _updateNumberOfTargets(int);
 
+    void _computationStarted();
+    void _computationFinished();
+
+    void _displayPath(const QList<std::array<double,3>>&, double time, double length);
+
 private:
     Ui::MainWindow* _ui;
     TargetManager* _targetManager;
+    ComputationManager* _computationManager;
 
     Ui::SimulatedAnnealingDialog* _uiSADialog;
     QDialog* _saDialog;
