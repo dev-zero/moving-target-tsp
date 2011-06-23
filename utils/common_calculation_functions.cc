@@ -15,29 +15,42 @@ namespace ublas
     using namespace boost::numeric::ublas;
 }
 
+double _calc_min_non_neg_root(const double& a, const double& b, const double& c)
+{
+    if (std::abs(a) < std::numeric_limits<double>::epsilon())
+    {
+        if (-c/b > 0.0)
+            return -c / b;
+        else
+            return std::numeric_limits<double>::infinity();
+    }
+
+    // TODO: if b^2 =~ 4ac .. use different formula
+    double t1( (-b + sqrt(b*b - 4*a*c)) / (2*a) );
+    double t2( (-b - sqrt(b*b - 4*a*c)) / (2*a) );
+
+    if (t1 >= 0.0)
+    {
+        if (t2 >= 0.0)
+            return std::min(t1, t2);
+        else
+            return t1;
+    }
+    else
+    {
+        if (t2 >= 0.0)
+            return t2;
+    }
+    return std::numeric_limits<double>::infinity();
+}
+
 /* calculate the time duration to go from s_position to e_position which moves with e_velocity when travelling with velocity v */
 double calculate_time(const double& v, const ublas::vector<double>& s_position, const ublas::vector<double>& e_position, const ublas::vector<double>& e_velocity)
 {
     double a(v*v - ublas::inner_prod(e_velocity, e_velocity));
     double b(-2 * ublas::inner_prod(e_position - s_position, e_velocity));
     double c(-ublas::inner_prod(e_position - s_position, e_position - s_position));
-
-    if (std::abs(a) < std::numeric_limits<double>::epsilon())
-        return -c / b;
-    // TODO: if b^2 =~ 4ac .. use different formula
-    double t1( (-b + sqrt(b*b - 4*a*c)) / (2*a) );
-    double t2( (-b - sqrt(b*b - 4*a*c)) / (2*a) );
-
-    if (t1 < 0.0)
-    {
-        if (t2 < 0.0)
-            return std::numeric_limits<double>::infinity();
-        return t2;
-    }
-    else if(t2 < 0.0)
-        return t1;
-    else
-        return std::min(t1, t2);
+    return _calc_min_non_neg_root(a, b, c);
 }
 
 /* calculate the time duration to go from s_position to e_position which moves with e_velocity when travelling with velocity v */
@@ -46,23 +59,7 @@ double calculate_time(const double& v, const std::array<double,3>& s_position, c
     double a(v*v - inner_prod(e_velocity, e_velocity));
     double b(-2 * inner_prod(e_position - s_position, e_velocity));
     double c(-inner_prod(e_position - s_position, e_position - s_position));
-
-    if (std::abs(a) < std::numeric_limits<double>::epsilon())
-        return -c / b;
-    // TODO: if b^2 =~ 4ac .. use different formula
-    double t1( (-b + sqrt(b*b - 4*a*c)) / (2*a) );
-    double t2( (-b - sqrt(b*b - 4*a*c)) / (2*a) );
-
-    if (t1 < 0.0)
-    {
-        if (t2 < 0.0)
-            return std::numeric_limits<double>::infinity();
-        return t2;
-    }
-    else if(t2 < 0.0)
-        return t1;
-    else
-        return std::min(t1, t2);
+    return _calc_min_non_neg_root(a, b, c);
 }
 
 void calculate_distance_and_direct_travelling_time(double& shortest_distance, double v, const Target& a, const Target& b)
@@ -105,26 +102,27 @@ void equatorial2cartesian(const double& delta, const double& alpha, const double
     else
         r = 1.0/plx;
 
+    r *= 1000.0; // converting milli-parsec to parsec
     x = r*cos(b)*cos(l);
     y = r*cos(b)*sin(l);
     z = r*sin(b);
 }
 
-const double seconds_per_year(86400.0);
+const double seconds_per_year(31557600.0);
 const double parsec_in_m(30.856776e15);
 
 double parsec_per_year2meters_per_second(const double& v)
 {
-    return v*parsec_in_m/seconds_per_year;
+    return (v*parsec_in_m)/seconds_per_year;
 }
 
 double parsec_per_year2fractions_of_c(const double& v)
 {
-    return (v*parsec_in_m/seconds_per_year)/physical_constants::c;
+    return ((v*parsec_in_m)/seconds_per_year)/physical_constants::c;
 }
 
 double fractions_of_c2parsec_per_year(const double& v)
 {
-    return (v*physical_constants::c)*seconds_per_year/parsec_in_m;
+    return ((v*physical_constants::c)*seconds_per_year)/parsec_in_m;
 }
 

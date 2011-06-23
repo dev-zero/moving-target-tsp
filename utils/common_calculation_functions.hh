@@ -12,6 +12,8 @@
 
 #include <boost/numeric/ublas/vector.hpp>
 #include <array>
+#include <cmath>
+
 #include "target.hh"
 
 inline std::array<double,3> operator*(const double& lhs, const std::array<double,3>& rhs)
@@ -36,6 +38,11 @@ inline std::array<double,3> operator-(const std::array<double,3>& lhs, const std
 inline double inner_prod(const std::array<double,3>& lhs, const std::array<double,3>& rhs)
 {
     return lhs[0]*rhs[0] + lhs[1]*rhs[1] + lhs[2]*rhs[2];
+}
+
+inline double norm(const std::array<double,3>& v)
+{
+    return sqrt(inner_prod(v, v));
 }
 
 /* calculate the time duration to go from s_position to e_position which moves with e_velocity when travelling with velocity v */
@@ -83,14 +90,54 @@ namespace equatorial2galactic_constants
 
 namespace physical_constants
 {
+    /// speed of light [m/s]
     const static double c = 299792458.0;
 }
+
+namespace unit_conversions
+{
+    const static double lightyearsPerParsec = 3.261563777;
+}
+
+/**
+ * Converting from Equatorial to Galactic coordinates
+ * @param delta declination [rad]
+ * @param alpha right ascension [rad]
+ */
 void equatorial2galactic(const double& delta, const double& alpha, double& b, double& l);
 
+/**
+ * Converting from Equatorial to Cartesian coordinates
+ * @param delta declination [rad]
+ * @param alpha right ascension [rad]
+ * @param plx parallax [mas]
+ * @param plx_err error on parallax [mas]
+ * @param x x coordinate [pc]
+ * @param y y coordinate [pc]
+ * @param z z coordinate [pc]
+ */
 void equatorial2cartesian(const double& delta, const double& alpha, const double& plx, const double& plx_err, double& x, double& y, double& z);
 
 double parsec_per_year2fractions_of_c(const double& v);
 double fractions_of_c2parsec_per_year(const double& v);
 double parsec_per_year2meters_per_second(const double& v);
 
+inline double deg2rad(const double& d)
+{
+    return (d/180.0)*M_PI;
+}
+inline double mas2rad(const double& d)
+{
+    return (d/648000000.0)*M_PI;
+}
+
+inline double parsec2lightyears(const double& d)
+{
+    return d*unit_conversions::lightyearsPerParsec;
+}
+
+inline double lightyears2parsec(const double& d)
+{
+    return d/unit_conversions::lightyearsPerParsec;
+}
 #endif // COMMON_CALCULATION_FUNCTIONS_HH
