@@ -42,7 +42,7 @@
           <enum>QTabWidget::West</enum>
          </property>
          <property name="currentIndex">
-          <number>2</number>
+          <number>1</number>
          </property>
          <widget class="QWidget" name="csvTab">
           <attribute name="title">
@@ -119,11 +119,21 @@
              <property name="editTriggers">
               <set>QAbstractItemView::NoEditTriggers</set>
              </property>
+             <property name="selectionMode">
+              <enum>QAbstractItemView::MultiSelection</enum>
+             </property>
              <property name="rootIsDecorated">
               <bool>false</bool>
              </property>
              <property name="sortingEnabled">
               <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="numberOfSelectedCSVTargets">
+             <property name="text">
+              <string>Number of selected targets: 0</string>
              </property>
             </widget>
            </item>
@@ -210,11 +220,11 @@
               <string/>
              </property>
              <property name="placeholderText">
-              <string>Filter...</string>
+              <string>Regular Expression Filter...</string>
              </property>
             </widget>
            </item>
-           <item row="5" column="1">
+           <item row="6" column="1">
             <widget class="QPushButton" name="addHipparcosTarget">
              <property name="enabled">
               <bool>false</bool>
@@ -242,9 +252,91 @@
              <property name="editTriggers">
               <set>QAbstractItemView::NoEditTriggers</set>
              </property>
+             <property name="selectionMode">
+              <enum>QAbstractItemView::MultiSelection</enum>
+             </property>
              <property name="rootIsDecorated">
               <bool>false</bool>
              </property>
+            </widget>
+           </item>
+           <item row="6" column="0">
+            <widget class="QLabel" name="numberOfSelectedHipparcosTargets">
+             <property name="text">
+              <string>Number of selected targets: 0</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0" colspan="2">
+            <widget class="QGroupBox" name="filterByDistanceBox">
+             <property name="title">
+              <string>Filter by distance</string>
+             </property>
+             <property name="flat">
+              <bool>true</bool>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+             <property name="checked">
+              <bool>false</bool>
+             </property>
+             <layout class="QFormLayout" name="formLayout">
+              <property name="fieldGrowthPolicy">
+               <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+              </property>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label">
+                <property name="text">
+                 <string>Minimal distance (in parsec):</string>
+                </property>
+                <property name="buddy">
+                 <cstring>minimalDistanceFilter</cstring>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QDoubleSpinBox" name="minimalDistanceFilter">
+                <property name="maximum">
+                 <double>999999999.990000009536743</double>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_3">
+                <property name="text">
+                 <string>Maximal distance (in parsec):</string>
+                </property>
+                <property name="buddy">
+                 <cstring>maximalDistanceFilter</cstring>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QDoubleSpinBox" name="maximalDistanceFilter"/>
+              </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_5">
+                <property name="text">
+                 <string>Unit</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="unitSelectionFilter">
+                <item>
+                 <property name="text">
+                  <string>parsec</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>lightyears</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+             </layout>
             </widget>
            </item>
           </layout>
@@ -271,7 +363,7 @@
              </property>
             </widget>
            </item>
-           <item row="4" column="3">
+           <item row="4" column="3" colspan="2">
             <widget class="QPushButton" name="addSimbadTarget">
              <property name="enabled">
               <bool>false</bool>
@@ -291,13 +383,27 @@
              </property>
             </widget>
            </item>
-           <item row="3" column="0" colspan="4">
+           <item row="3" column="0" colspan="5">
             <widget class="QTreeView" name="simbadTargets">
              <property name="editTriggers">
               <set>QAbstractItemView::NoEditTriggers</set>
              </property>
              <property name="rootIsDecorated">
               <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="4">
+            <widget class="QToolButton" name="browseForSimbad">
+             <property name="toolTip">
+              <string>Load a list of queries</string>
+             </property>
+             <property name="text">
+              <string>Load query list</string>
+             </property>
+             <property name="icon">
+              <iconset resource="../icons/icons.qrc">
+               <normaloff>:/document-open.svg</normaloff>:/document-open.svg</iconset>
              </property>
             </widget>
            </item>
@@ -327,6 +433,9 @@
           <layout class="QHBoxLayout" name="horizontalLayout">
            <item>
             <widget class="QToolButton" name="loadTargets">
+             <property name="toolTip">
+              <string>Load targets</string>
+             </property>
              <property name="text">
               <string>...</string>
              </property>
@@ -338,6 +447,9 @@
            </item>
            <item>
             <widget class="QToolButton" name="saveTargets">
+             <property name="toolTip">
+              <string>Save targets</string>
+             </property>
              <property name="text">
               <string>...</string>
              </property>

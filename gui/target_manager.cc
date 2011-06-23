@@ -55,7 +55,7 @@ TargetManager::TargetManager(QStandardItemModel* targets, QWidget* p) :
 
     _hipparcosTargets = new QStandardItemModel(0, _hipparcosTargetsHeader.count(), this);
     _hipparcosTargets->setHorizontalHeaderLabels(_hipparcosTargetsHeader);
-    _hipparcosTargetsFilterProxy = new QSortFilterProxyModel(this);
+    _hipparcosTargetsFilterProxy = new TargetDataFilterProxyModel(this);
     _hipparcosTargetsFilterProxy->setSourceModel(_hipparcosTargets);
     _ui->hipparcosTargets->setModel(_hipparcosTargetsFilterProxy);
 
@@ -88,14 +88,19 @@ TargetManager::TargetManager(QStandardItemModel* targets, QWidget* p) :
     connect(this, SIGNAL(csvSourceIsValid(bool)), _ui->loadCSV, SLOT(setEnabled(bool)));
     connect(this, SIGNAL(hipSourceIsValid(bool)), _ui->loadHipparcos, SLOT(setEnabled(bool)));
 
-//    connect(_ui->loadCSV, SIGNAL(clicked()), SLOT(disableCSVLoadInterface()));
-//    connect(_ui->loadHIP, SIGNAL(clicked()), SLOT(disableHIPLoadInterface()));
-
     connect(_ui->loadHipparcos, SIGNAL(clicked()), SLOT(_loadHipparcos()));
     connect(_ui->loadCSV, SIGNAL(clicked()), SLOT(_loadCSV()));
 
     connect(_ui->hipparcosTargetFilter, SIGNAL(textChanged(const QString&)), _hipparcosTargetsFilterProxy, SLOT(setFilterRegExp(const QString&)));
     connect(_ui->csvTargetFilter, SIGNAL(textChanged(const QString&)), _csvTargetsFilterProxy, SLOT(setFilterRegExp(const QString&)));
+    
+    connect(_ui->filterByDistanceBox, SIGNAL(toggled(bool)), _hipparcosTargetsFilterProxy, SLOT(distanceFiltering(bool)));
+    connect(_ui->minimalDistanceFilter, SIGNAL(valueChanged(double)), _hipparcosTargetsFilterProxy, SLOT(setFilterMinimalDistance(double)));
+    connect(_ui->maximalDistanceFilter, SIGNAL(valueChanged(double)), _hipparcosTargetsFilterProxy, SLOT(setFilterMaximalDistance(double)));
+    connect(_ui->unitSelectionFilter, SIGNAL(currentIndexChanged(const QString&)), SLOT(_hipparcosTargetsFilterUnitChanged(const QString&)));
+
+    connect(_ui->hipparcosTargets->selectionModel(), SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)), SLOT(_updateSelectedHipparcosTargets()));
+    connect(_ui->csvTargets->selectionModel(), SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)), SLOT(_updateSelectedCSVTargets()));
 
     connect(this, SIGNAL(loadHipparcosData(const QString&, const QString&)), _hipparcosLoader, SLOT(load(const QString&, const QString&)));
     connect(this, SIGNAL(loadCSVData(const QString&)), _csvLoader, SLOT(load(const QString&)));
@@ -271,9 +276,9 @@ void TargetManager::_addCSVTarget(const TargetDataQt& t)
     items << new QStandardItem(QString("%1/%2/%3").arg(t.position[0]).arg(t.position[1]).arg(t.position[2]));
     items << new QStandardItem(QString("%1/%2/%3").arg(t.velocity[0]).arg(t.velocity[1]).arg(t.velocity[2]));
     /*
-    unsigned int idx(_ui->renderingWidget->addTarget(t));
-    item->setData(QVariant::fromValue(idx), Qt::UserRole + 2); // first role idx is used for TargetDataQt
-*/
+       unsigned int idx(_ui->renderingWidget->addTarget(t));
+       item->setData(QVariant::fromValue(idx), Qt::UserRole + 2); // first role idx is used for TargetDataQt
+       */
     _csvTargets->appendRow(items);
 }
 
@@ -281,23 +286,23 @@ void TargetManager::_addHipparcosTarget(const TargetDataQt& t)
 {
     /* if the additional data contains a description,
      * append it to the name */
-/*
-    QMap<QString, QVariant>::const_iterator f;
+    /*
+       QMap<QString, QVariant>::const_iterator f;
 
-    f = t.data.find("description");
-    if (f != t.data.end())
-        line += QString(" (%1)").arg(f->toString());
-*/
+       f = t.data.find("description");
+       if (f != t.data.end())
+       line += QString(" (%1)").arg(f->toString());
+       */
     QStandardItem* item(new QStandardItem(t.name));
     item->setData(QVariant::fromValue(t), Qt::UserRole + 1);
     QList<QStandardItem *> items;
     items << item;
     items << new QStandardItem(QString("%1/%2/%3").arg(t.position[0]).arg(t.position[1]).arg(t.position[2]));
     items << new QStandardItem(QString("%1/%2/%3").arg(t.velocity[0]).arg(t.velocity[1]).arg(t.velocity[2]));
-/*
-    unsigned int idx(_ui->renderingWidget->addTarget(t));
-    item->setData(QVariant::fromValue(idx), Qt::UserRole + 2); // first role idx is used for TargetDataQt
-*/
+    /*
+       unsigned int idx(_ui->renderingWidget->addTarget(t));
+       item->setData(QVariant::fromValue(idx), Qt::UserRole + 2); // first role idx is used for TargetDataQt
+       */
     _hipparcosTargets->appendRow(items);
 }
 
@@ -354,26 +359,54 @@ void TargetManager::_targetSelectionChanged()
 void TargetManager::_addSelectedHipparcosTarget(const QModelIndex& idx)
 {
     QList<QStandardItem *> itemList;
-    if (idx.isValid())
-        itemList = _hipparcosTargets->takeRow(idx.row());
-    else
-        itemList = _hipparcosTargets->takeRow(_ui->hipparcosTargets->selectionModel()->selectedRows().front().row());
+    QList<QPersistentModelIndex> persistentIndizes;
 
-    _targets->appendRow(itemList);
-    emit targetAdded(itemList.front());
+    if (idx.isValid())
+        persistentIndizes << _hipparcosTargetsFilterProxy->mapToSource(idx);
+    else
+    {
+        QModelIndex i;
+        foreach (i, _ui->hipparcosTargets->selectionModel()->selectedRows())
+        {
+            persistentIndizes << _hipparcosTargetsFilterProxy->mapToSource(i);
+        }
+    }
+
+    QPersistentModelIndex pi;
+    foreach (pi, persistentIndizes)
+    {
+        itemList = _hipparcosTargets->takeRow(pi.row());
+
+        _targets->appendRow(itemList);
+        emit targetAdded(itemList.front());
+    }
     emit numberOfTargetsChanged(_targets->rowCount());
 }
 
 void TargetManager::_addSelectedCSVTarget(const QModelIndex& idx)
 {
     QList<QStandardItem *> itemList;
-    if (idx.isValid())
-        itemList = _csvTargets->takeRow(idx.row());
-    else
-        itemList = _csvTargets->takeRow(_ui->csvTargets->selectionModel()->selectedRows().front().row());
+    QList<QPersistentModelIndex> persistentIndizes;
 
-    _targets->appendRow(itemList);
-    emit targetAdded(itemList.front());
+    if (idx.isValid())
+        persistentIndizes << _csvTargetsFilterProxy->mapToSource(idx);
+    else
+    {
+        QModelIndex i;
+        foreach (i, _ui->csvTargets->selectionModel()->selectedRows())
+        {
+            persistentIndizes << _csvTargetsFilterProxy->mapToSource(i);
+        }
+    }
+
+    QPersistentModelIndex pi;
+    foreach (pi, persistentIndizes)
+    {
+        itemList = _csvTargets->takeRow(pi.row());
+
+        _targets->appendRow(itemList);
+        emit targetAdded(itemList.front());
+    }
     emit numberOfTargetsChanged(_targets->rowCount());
 }
 
@@ -542,9 +575,30 @@ void TargetManager::_simbadQueryError(const QString& e)
     QMessageBox::warning(this, "webservice error", e);
 }
 
-
-
-    {
-    }
+void TargetManager::_updateSelectedCSVTargets()
+{
+    _ui->numberOfSelectedCSVTargets->setText( tr("Number of selected targets: %1").arg(_ui->csvTargets->selectionModel()->selectedRows().count()));
 }
 
+void TargetManager::_updateSelectedHipparcosTargets()
+{
+    _ui->numberOfSelectedHipparcosTargets->setText( tr("Number of selected targets: %1").arg(_ui->hipparcosTargets->selectionModel()->selectedRows().count()));
+}
+
+void TargetManager::_hipparcosTargetsFilterUnitChanged(const QString& unit)
+{
+    if (unit == "parsec")
+    {
+        _ui->minimalDistanceFilter->setValue(lightyears2parsec(_ui->minimalDistanceFilter->value()));
+        _ui->maximalDistanceFilter->setValue(lightyears2parsec(_ui->maximalDistanceFilter->value()));
+        _hipparcosTargetsFilterProxy->setFilterDistanceFactor(1.0);
+    }
+    else if (unit == "lightyears")
+    {
+        _ui->minimalDistanceFilter->setValue(parsec2lightyears(_ui->minimalDistanceFilter->value()));
+        _ui->maximalDistanceFilter->setValue(parsec2lightyears(_ui->maximalDistanceFilter->value()));
+        _hipparcosTargetsFilterProxy->setFilterDistanceFactor(1.0/unit_conversions::lightyearsPerParsec);
+    }
+    else
+        qDebug() << "invalid unit selected for filter, the developer seems to have forgotten to update this code";
+}

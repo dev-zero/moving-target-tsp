@@ -29,6 +29,7 @@ class QStandardItem;
 class DataLoaderHipparcos;
 class DataLoaderCSV;
 class DataLoaderSimbad;
+class TargetDataFilterProxyModel;
 
 class TargetManager :
     public QDialog
@@ -42,7 +43,8 @@ private:
     Ui::TargetManager* _ui;
 
     QStandardItemModel *_targets, *_hipparcosTargets, *_csvTargets, *_simbadTargets;
-    QSortFilterProxyModel *_hipparcosTargetsFilterProxy, *_csvTargetsFilterProxy;
+    QSortFilterProxyModel* _csvTargetsFilterProxy;
+    TargetDataFilterProxyModel* _hipparcosTargetsFilterProxy;
 
     QString _browseForFile(const QString& filter);
     bool _checkBasicAccess(const QString& filepath) const;
@@ -90,6 +92,9 @@ private slots:
 
     void _removeTarget(const QModelIndex& idx = QModelIndex());
 
+    void _updateSelectedCSVTargets();
+    void _updateSelectedHipparcosTargets();
+    void _hipparcosTargetsFilterUnitChanged(const QString&);
 
 public slots:
     void removeAllTargets();
