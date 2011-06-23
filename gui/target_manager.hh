@@ -25,10 +25,10 @@ class QStandardItemModel;
 class QSortFilterProxyModel;
 class QErrorMessage;
 class QStandardItem;
-class QtSoapHttpTransport;
 
 class DataLoaderHipparcos;
 class DataLoaderCSV;
+class DataLoaderSimbad;
 
 class TargetManager :
     public QDialog
@@ -53,12 +53,11 @@ private:
     QThread* _loaderThread;
     DataLoaderHipparcos* _hipparcosLoader;
     DataLoaderCSV* _csvLoader;
+    DataLoaderSimbad* _simbadLoader;
 
     QStringList _csvTargetsHeader, _hipparcosTargetsHeader, _simbadTargetsHeader;
 
     QErrorMessage* _errorMessage;
-
-    QtSoapHttpTransport* _http;
 
 private slots:
     bool _checkCSVFile(const QString& filepath);
@@ -68,6 +67,7 @@ private slots:
     void _browseForCSV();
     void _browseForHIP();
     void _browseForHIP2();
+    void _browseForSimbad();
 
     void _setLoadHipparcosData(bool load);
 
@@ -76,6 +76,8 @@ private slots:
 
     void _addHipparcosTarget(const TargetDataQt&);
     void _addCSVTarget(const TargetDataQt&);
+    void _addSimbadTarget(const TargetDataQt&, const QStringList&);
+    void _simbadQueryError(const QString&);
 
     void _hipparcosTargetSelectionChanged();
     void _csvTargetSelectionChanged();
@@ -88,7 +90,6 @@ private slots:
 
     void _removeTarget(const QModelIndex& idx = QModelIndex());
 
-    void _getSimbadResponse();
 
 public slots:
     void removeAllTargets();
@@ -108,6 +109,8 @@ signals:
 
     void loadHipparcosData(const QString&, const QString&);
     void loadCSVData(const QString&);
+    void querySimbad(const QString&);
+    void querySimbad(const QStringList&);
 
     void targetAdded(QStandardItem*);
     void targetRemoved(unsigned int); // TODO: we are emitting the index of the UserRole+2 here, this is bad

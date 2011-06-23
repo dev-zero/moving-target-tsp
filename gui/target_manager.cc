@@ -13,14 +13,15 @@
 #include <QtGui/QSortFilterProxyModel>
 #include <QtGui/QErrorMessage>
 #include <QtGui/QMessageBox>
-#include <QtXml/QDomDocument>
-
-#include "3rdparty/qtsoap/qtsoap.h"
+#include <QtCore/QFile>
+#include <QtCore/QTextStream>
 
 #include "gui/target_manager.hh"
 #include "sources/file_source.hh"
 #include "gui/data_loader_hipparcos.hh"
 #include "gui/data_loader_csv.hh"
+#include "gui/data_loader_simbad.hh"
+#include "gui/target_data_filter_proxy_model.hh"
 #include "utils/common_calculation_functions.hh"
 
 #include "ui_target_manager.h"
@@ -38,10 +39,12 @@ TargetManager::TargetManager(QStandardItemModel* targets, QWidget* p) :
 
     _hipparcosLoader = new DataLoaderHipparcos;
     _csvLoader = new DataLoaderCSV;
+    _simbadLoader = new DataLoaderSimbad;
 
     _loaderThread = new QThread;
     _hipparcosLoader->moveToThread(_loaderThread);
     _csvLoader->moveToThread(_loaderThread);
+    _simbadLoader->moveToThread(_loaderThread);
 
     _ui->targets->setModel(_targets);
 
@@ -67,13 +70,10 @@ TargetManager::TargetManager(QStandardItemModel* targets, QWidget* p) :
     _simbadTargets->setHorizontalHeaderLabels(_simbadTargetsHeader);
     _ui->simbadTargets->setModel(_simbadTargets);
 
-    _http = new QtSoapHttpTransport(this);
-    _http->setAction("urn:simbad");
-    _http->setHost("cdsws.u-strasbg.fr");
-
     connect(_ui->browseForCSV, SIGNAL(clicked()), SLOT(_browseForCSV()));
     connect(_ui->browseForHipparcos, SIGNAL(clicked()), SLOT(_browseForHIP()));
     connect(_ui->browseForHipparcos2, SIGNAL(clicked()), SLOT(_browseForHIP2()));
+    connect(_ui->browseForSimbad, SIGNAL(clicked()), SLOT(_browseForSimbad()));
 
     connect(this, SIGNAL(csvSourceChanged(const QString&)), _ui->csvFilepath, SLOT(setText(const QString&)));
     connect(this, SIGNAL(hipSourceChanged(const QString&)), _ui->hipparcosFilepath, SLOT(setText(const QString&)));
@@ -99,9 +99,13 @@ TargetManager::TargetManager(QStandardItemModel* targets, QWidget* p) :
 
     connect(this, SIGNAL(loadHipparcosData(const QString&, const QString&)), _hipparcosLoader, SLOT(load(const QString&, const QString&)));
     connect(this, SIGNAL(loadCSVData(const QString&)), _csvLoader, SLOT(load(const QString&)));
+    connect(this, SIGNAL(querySimbad(const QString&)), _simbadLoader, SLOT(query(const QString&)));
+    connect(this, SIGNAL(querySimbad(const QStringList&)), _simbadLoader, SLOT(query(const QStringList&)));
 
     connect(_hipparcosLoader, SIGNAL(targetFound(const TargetDataQt&)), SLOT(_addHipparcosTarget(const TargetDataQt&)));
     connect(_csvLoader, SIGNAL(targetFound(const TargetDataQt&)), SLOT(_addCSVTarget(const TargetDataQt&)));
+    connect(_simbadLoader, SIGNAL(targetFound(const TargetDataQt&, const QStringList&)), SLOT(_addSimbadTarget(const TargetDataQt&, const QStringList&)));
+    connect(_simbadLoader, SIGNAL(queryError(const QString&)), SLOT(_simbadQueryError(const QString&)));
 
     connect(_ui->csvTargets->selectionModel(),
             SIGNAL(selectionChanged(const QItemSelection&, const QItemSelection&)),
@@ -132,8 +136,6 @@ TargetManager::TargetManager(QStandardItemModel* targets, QWidget* p) :
 
     connect(_ui->querySimbad, SIGNAL(clicked()), SLOT(searchSimbad()));
     connect(_ui->simbadQuery, SIGNAL(returnPressed()), SLOT(searchSimbad()));
-
-    connect(_http, SIGNAL(responseReady()), SLOT(_getSimbadResponse()));
 
     _loaderThread->start();
 }
@@ -205,6 +207,33 @@ void TargetManager::_browseForHIP2()
     QString filepath(_browseForFile(tr("Hipparcos-2 data (*.dat)")));
     if (filepath.size() > 0)
         emit hip2SourceChanged(filepath);
+}
+
+void TargetManager::_browseForSimbad()
+{
+    QString filepath(_browseForFile(tr("file with one query per line (*.*)")));
+    if (filepath == "")
+        return;
+
+    QFile file(filepath);
+    if (!file.open(QIODevice::ReadOnly))
+    {
+        _errorMessage->showMessage(tr("The selected file could not be opened for writing."));
+        return;
+    }
+    QTextStream t(&file);
+    QStringList qs;
+    while (!t.atEnd())
+    {
+        QString line(t.readLine());
+        if (line != "")
+        {
+            qs << line;
+            qDebug() << "added " << line << " to list of queries";
+        }
+    }
+    file.close();
+    emit querySimbad(qs);
 }
 
 void TargetManager::_loadHipparcos()
@@ -490,105 +519,32 @@ void TargetManager::searchSimbad(const QString& query)
         return;
     }
 
-    QtSoapMessage request;
-    request.setMethod(QtSoapQName("sesame", "urn:sesame"));
-    request.addMethodArgument("name", "", query);
-    request.addMethodArgument("resultType", "", "x");
-    _http->submitRequest(request, "/axis/services/Sesame");
-
     _simbadTargets->clear();
     _simbadTargets->setHorizontalHeaderLabels(_simbadTargetsHeader);
+    emit querySimbad(query);
 }
 
-void TargetManager::_getSimbadResponse()
+void TargetManager::_addSimbadTarget(const TargetDataQt& t, const QStringList& d)
 {
-    const QtSoapMessage& resp(_http->getResponse());
-    if (resp.isFault())
+    QStandardItem* item(new QStandardItem(d.at(0)));
+    item->setData(QVariant::fromValue(t), Qt::UserRole + 1);
+
+    QList<QStandardItem *> items;
+    items << item;
+    for (int i(1); i < d.count(); ++i)
+        items << new QStandardItem(d.at(i));
+
+    _simbadTargets->appendRow(items);
+}
+
+void TargetManager::_simbadQueryError(const QString& e)
+{
+    QMessageBox::warning(this, "webservice error", e);
+}
+
+
+
     {
-        QMessageBox::warning(this, "webservice error", "soap request failed: " + resp.faultString().value().toString());
-        return;
-    }
-
-    const QtSoapType& res(resp.returnValue());
-    if (!res.isValid())
-    {
-        QMessageBox::warning(this, "webservice error", "soap return type is invalid");
-        return;
-    }
-
-    qDebug() << res.value().toString();
-
-    QDomDocument doc;
-    doc.setContent(res.value().toString());
-
-
-    QDomNodeList targets(doc.elementsByTagName("Target"));
-
-    for (int i(0); i < targets.count(); ++i)
-    {
-        QDomNode target_node(targets.at(i));
-        QDomNode resolver = target_node.namedItem("Resolver");
-
-        if (resolver.isNull())
-        {
-            qDebug() << "no object found";
-            continue;
-        }
-
-        QList<QStandardItem *> items;
-        QStandardItem* item(new QStandardItem(resolver.firstChildElement("oname").text()));
-
-        items << item;
-        items << new QStandardItem(resolver.firstChildElement("jradeg").text());
-        items << new QStandardItem(resolver.firstChildElement("jdedeg").text());
-
-        QDomNode radialVelocity = resolver.namedItem("Vel");
-        if (radialVelocity.isNull())
-            items << new QStandardItem("(unavailable)");
-        else
-            items << new QStandardItem(radialVelocity.firstChildElement("v").text());
-
-        QDomNode properMotions = resolver.namedItem("pm");
-        if (properMotions.isNull())
-        {
-            items << new QStandardItem("(unavailable)");
-            items << new QStandardItem("(unavailable)");
-            items << new QStandardItem("(unavailable)");
-            items << new QStandardItem("(unavailable)");
-            items << new QStandardItem("(unavailable)");
-        }
-        else
-        {
-            items << new QStandardItem(properMotions.firstChildElement("pa").text());
-            items << new QStandardItem(properMotions.firstChildElement("pmRA").text());
-            items << new QStandardItem(properMotions.firstChildElement("pmDE").text());
-
-            // we need the parallax contained in the proper motions to calculate the cartesian coordinates
-            std::array<double,3> position, velocity;
-            equatorial2cartesian(
-                    resolver.firstChildElement("jdedeg").text().toDouble(),
-                    resolver.firstChildElement("jradeg").text().toDouble(),
-                    properMotions.firstChildElement("pa").text().toDouble(),
-                    0.0, // let the parallax error be 0 since we don't have the exact value
-                    position[0], position[1], position[2]);
-            equatorial2cartesian(
-                    resolver.firstChildElement("jdedeg").text().toDouble() + (properMotions.firstChildElement("pmDE").text().toDouble()/(3600000.0*180.0)*M_PI),
-                    resolver.firstChildElement("jradeg").text().toDouble() + (properMotions.firstChildElement("pmRA").text().toDouble()/(3600000.0*180.0)*M_PI),
-                    properMotions.firstChildElement("pa").text().toDouble(),
-                    0.0, // let the parallax error be 0 since we don't have the exact value
-                    velocity[0], velocity[1], velocity[2]);
-
-            velocity[0] -= position[0];
-            velocity[1] -= position[1];
-            velocity[2] -= position[2];
-
-            items << new QStandardItem(QString("%1/%2/%3").arg(position[0]).arg(position[1]).arg(position[2]));
-            items << new QStandardItem(QString("%1/%2/%3").arg(velocity[0]).arg(velocity[1]).arg(velocity[2]));
-
-            TargetDataQt t(position, velocity, resolver.firstChildElement("oname").text());
-            item->setData(QVariant::fromValue(t), Qt::UserRole + 1);
-        }
-        _simbadTargets->appendRow(items);
     }
 }
 
