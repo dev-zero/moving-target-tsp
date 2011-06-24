@@ -22,6 +22,7 @@
 /// forward declarations
 class QThread;
 class ExhaustiveSearchRecursive;
+class SimulatedAnnealing;
 
 class ComputationManager :
     public QObject
@@ -31,12 +32,6 @@ public:
     ComputationManager(QObject* p = 0);
 
     ~ComputationManager();
-
-    /**
-     * switch the used algorithm
-     * @param identifier identifier for the algorithm
-     */
-    void switchAlgorithm(const QString& identifier);
 
     /**
      * reset parameters for the specified algorithm
@@ -60,6 +55,12 @@ public slots:
      */
     void abort();
 
+    /**
+     * switch the used algorithm
+     * @param identifier identifier for the algorithm
+     */
+    void switchAlgorithm(const QString& identifier);
+
 signals:
     void finished();
     void started();
@@ -72,7 +73,10 @@ private slots:
 private:
     QThread* _thread;
     ExhaustiveSearchRecursive* _exhaustiveSearch;
+    SimulatedAnnealing* _simulatedAnnealing;
     std::vector<TargetDataQt> _targets;
+
+    QString _selectedAlgorithm;
 };
 
 #endif // COMPUTATION_MANAGER_HH

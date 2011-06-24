@@ -46,7 +46,8 @@ QT4_ADD_RESOURCES(target_manager_RCS icons/icons.qrc)
 
 QT4_WRAP_CPP(computation_manager_MOC_SRCS
     gui/computation_manager.hh
-    gui/exhaustive_search_recursive.hh)
+    gui/exhaustive_search_recursive.hh
+    gui/simulated_annealing.hh)
 
 QT4_WRAP_CPP(qtsoap_MOC_SRCS
     3rdparty/qtsoap/qtsoap.h)
@@ -70,9 +71,9 @@ add_executable(moving-target-tsp moving-target-tsp.cc
     gui/data_loader_hipparcos.cc
     gui/data_loader_simbad.cc
     gui/target_data_filter_proxy_model.cc
-    gui/exhaustive_search.cc
     gui/computation_manager.cc
     gui/exhaustive_search_recursive.cc
+    gui/simulated_annealing.cc
     ${simplegui_UIS_H} ${viewer_widget_MOC_SRCS}
     ${target_manager_UIS_H} ${target_manager_MOC_SRCS} ${target_manager_RCS}
     ${computation_manager_MOC_SRCS}
@@ -110,6 +111,7 @@ add_executable(computation_manager_TEST
     gui/computation_manager_TEST.cc
     gui/computation_manager.cc
     gui/exhaustive_search_recursive.cc
+    gui/simulated_annealing.cc
     utils/common_calculation_functions.cc
     ${computation_manager_MOC_SRCS})
 

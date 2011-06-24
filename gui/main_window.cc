@@ -47,6 +47,12 @@ MainWindow::MainWindow() :
 
     _ui->targetsList->setModel(_targetsModel);
 
+    _computationManager = new ComputationManager(this);
+
+    connect(_computationManager, SIGNAL(started()), SLOT(_computationStarted()));
+    connect(_computationManager, SIGNAL(finished()), SLOT(_computationFinished()));
+    connect(_computationManager, SIGNAL(solutionFound(const QList<std::array<double,3>>&, double, double)), SLOT(_displayPath(const QList<std::array<double,3>>&, double, double)));
+
     connect(_targetManager, SIGNAL(targetAdded(QStandardItem*)), SLOT(_addTargetObject(QStandardItem*)));
     // TODO: we currently can't remove items since it would change our associated index
     connect(_targetManager, SIGNAL(targetRemoved(unsigned int)), _ui->renderingWidget, SLOT(disableTarget(unsigned int)));
@@ -54,11 +60,12 @@ MainWindow::MainWindow() :
 
     connect(_ui->openTargetManager, SIGNAL(clicked()), _targetManager, SLOT(open()));
 
-    connect(_ui->computationCommand, SIGNAL(clicked()), this, SLOT(_computationCommand()));
+    connect(_ui->computationCommand, SIGNAL(clicked()), SLOT(_computationCommand()));
 
-    connect(_ui->methodType, SIGNAL(activated(const QString&)), this, SLOT(_changeMethodType(const QString&)));
-    connect(_ui->methodOptions, SIGNAL(clicked()), this, SLOT(_showMethodOptionsDialog()));
-    connect(_saDialog, SIGNAL(finished(int)), this, SLOT(_methodOptionsDialogFinished(int)));
+    connect(_ui->methodType, SIGNAL(activated(const QString&)), SLOT(_changeMethodType(const QString&)));
+    connect(_ui->methodType, SIGNAL(activated(const QString&)), _computationManager, SLOT(switchAlgorithm(const QString&)));
+    connect(_ui->methodOptions, SIGNAL(clicked()), SLOT(_showMethodOptionsDialog()));
+    connect(_saDialog, SIGNAL(finished(int)), SLOT(_methodOptionsDialogFinished(int)));
 
     connect(_ui->velocity, SIGNAL(valueChanged(double)), SLOT(_updateVelocityFromUnits(double)));
     connect(_ui->velocityFractions, SIGNAL(valueChanged(double)), SLOT(_updateVelocityFromFractions(double)));
@@ -67,11 +74,6 @@ MainWindow::MainWindow() :
     _ui->methodWarning->setVisible(false);
 
     _ui->targetDetailsDock->setVisible(false);
-
-    _computationManager = new ComputationManager(this);
-    connect(_computationManager, SIGNAL(started()), SLOT(_computationStarted()));
-    connect(_computationManager, SIGNAL(finished()), SLOT(_computationFinished()));
-    connect(_computationManager, SIGNAL(solutionFound(const QList<std::array<double,3>>&, double, double)), SLOT(_displayPath(const QList<std::array<double,3>>&, double, double)));
 
     statusBar()->showMessage("ready");
 }
@@ -220,11 +222,14 @@ void MainWindow::_showMethodOptionsDialog()
 void MainWindow::_methodOptionsDialogFinished(int result)
 {
     if (result == QDialog::Accepted)
-        emit simulatedAnnealingCoolingScheduleChanged(std::make_tuple(
-                    _uiSADialog->initialTemperature->value(),
-                    _uiSADialog->decreaseFactor->value(),
-                    _uiSADialog->equalTemperatureSteps->value(),
-                    _uiSADialog->finalTemperature->value()));
+    {
+        QMap<QString, QVariant> options;
+        options["initialTemperature"]      = _uiSADialog->initialTemperature->value();
+        options["finalTemperature"]        = _uiSADialog->finalTemperature->value();
+        options["decreaseCoefficient"]     = _uiSADialog->decreaseFactor->value();
+        options["maxSameTemperatureSteps"] = _uiSADialog->equalTemperatureSteps->value();
+        _computationManager->setParameters("Simulated Annealing", options);
+    }
 }
 
 void MainWindow::_updateVelocityFromUnits(double v)
