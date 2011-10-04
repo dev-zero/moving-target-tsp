@@ -51,11 +51,18 @@ void ComputationManager::setParameters(const QString& identifier, const QMap<QSt
 {
     if (identifier == "Simulated Annealing")
     {
-        _simulatedAnnealing->setCoolingParameters(
-                parameters["initialTemperature"].toDouble(),
-                parameters["finalTemperature"].toDouble(),
-                parameters["decreaseCoefficient"].toDouble(),
-                parameters["maxSameTemperatureSteps"].toUInt());
+        if (parameters["useTemperatureAutocalculation"].toBool())
+            _simulatedAnnealing->setCoolingParameters(
+                    parameters["initialTemperatureSamplingSteps"].toUInt(),
+                    parameters["finalTemperature"].toDouble(),
+                    parameters["decreaseCoefficient"].toDouble(),
+                    parameters["maxSameTemperatureSteps"].toUInt());
+        else
+            _simulatedAnnealing->setCoolingParameters(
+                    parameters["initialTemperature"].toDouble(),
+                    parameters["finalTemperature"].toDouble(),
+                    parameters["decreaseCoefficient"].toDouble(),
+                    parameters["maxSameTemperatureSteps"].toUInt());
     }
 }
 

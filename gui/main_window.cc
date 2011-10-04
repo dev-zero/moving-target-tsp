@@ -228,6 +228,8 @@ void MainWindow::_methodOptionsDialogFinished(int result)
         options["finalTemperature"]        = _uiSADialog->finalTemperature->value();
         options["decreaseCoefficient"]     = _uiSADialog->decreaseFactor->value();
         options["maxSameTemperatureSteps"] = _uiSADialog->equalTemperatureSteps->value();
+        options["initialTemperatureSamplingSteps"] = _uiSADialog->temperatureSamplingSteps->value();
+        options["useTemperatureAutocalculation"]   = _uiSADialog->useTemperatureAutocalculation->isChecked();
         _computationManager->setParameters("Simulated Annealing", options);
     }
 }

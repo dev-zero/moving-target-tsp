@@ -11,10 +11,119 @@
 #define SIMULATED_ANNEALING_HH
 
 #include <vector>
+#include <cmath>
 
 #include <QtCore/QObject>
 
 #include "gui/target_data.hh"
+
+/**
+ * an abstract move operating on a sequence
+ */
+template<typename ContainerT>
+struct Move
+{
+    typedef typename ContainerT::iterator ContainerIterT;
+
+    /**
+     * The move operator, to be reimplemented in a derived class
+     * @param begin Iterator for the first element in the range
+     * @param end Iterator pointing to one element after the last to include in the range
+     * @return index of the first changed element
+     */
+    virtual size_t operator()(ContainerIterT begin, ContainerIterT end) = 0;
+};
+
+/**
+ * swaps two neighbour elements in a sequence
+ */
+template<typename ContainerT>
+struct RandomNeighbourSwapMove :
+    public Move<ContainerT>
+{
+    typedef typename ContainerT::iterator ContainerIterT;
+    size_t operator()(ContainerIterT begin, ContainerIterT end)
+    {
+        size_t size(std::distance(begin, end));
+        // generate random number r: 1 <= r <= size
+        size_t n(ceil( (rand()/(RAND_MAX + 1.0)) * size ));
+        size_t i(n % size), j((n+1) % size);
+        std::swap(*(begin + i), *(begin + j));
+        return std::min(i, j);
+    }
+};
+
+/**
+ * completely random shuffle of the permutation
+ */
+template<typename ContainerT>
+struct RandomMove :
+    public Move<ContainerT>
+{
+    typedef typename ContainerT::iterator ContainerIterT;
+    size_t operator()(ContainerIterT begin, ContainerIterT end)
+    {
+        size_t size(std::distance(begin, end));
+
+        for (size_t i(0); i < size; ++i)
+        {
+            // generate random number r: 0 <= r < (size-i)
+            size_t n(floor( (rand()/(RAND_MAX + 1.0)) * (size-i) ));
+            std::swap(*(begin + i), *(begin + i + n));
+        }
+        return 0;
+    }
+};
+
+template<typename MoveT> class MovingTargetTSPMove;
+
+class MovingTargetTSP
+{
+public:
+    typedef std::vector<std::pair<double, size_t>> Permutation;
+
+    MovingTargetTSP();
+
+    MovingTargetTSP(const std::vector<TargetDataQt> * targets, size_t origin, double startTime, double velocity);
+
+    void update();
+
+    double totalTime() const;
+
+    bool isSolution() const;
+
+    Permutation path() const;
+
+    void dump() const;
+
+    bool isValid() const;
+
+protected:
+    friend class MovingTargetTSPMove<RandomNeighbourSwapMove<Permutation>>;
+    friend class MovingTargetTSPMove<RandomMove<Permutation>>;
+
+    Permutation _path;
+    size_t _startIndex;
+
+private:
+    const std::vector<TargetDataQt> * _targets;
+    double _totalTime;
+    double _startTime;
+    double _velocity;
+};
+
+template<typename MoveT>
+class MovingTargetTSPMove
+{
+private:
+    MoveT move;
+public:
+    void operator()(MovingTargetTSP& mttsp)
+    {
+        mttsp._startIndex = move(mttsp._path.begin()+1, mttsp._path.end()-1) + 1;
+    }
+};
+
 
 class SimulatedAnnealing :
     public QObject
@@ -25,7 +134,7 @@ public:
     SimulatedAnnealing(QObject* p = 0);
 
     /**
-     * 
+     * set all data required for computation
      * @param targets The complete list of targets (including the origin)
      * @param velocity The velocity for the traveller
      * @param origin The indeox of the origin (and final) target in targets
@@ -47,6 +156,7 @@ public:
     std::vector<std::pair<double, size_t>> getSolution() const;
 
     void setCoolingParameters(double initialTemperature, double finalTemperature, double decreaseCoefficient, size_t maxSameTemperatureSteps);
+    void setCoolingParameters(unsigned int samplingSteps, double finalTemperature, double decreaseCoefficient, size_t maxSameTemperatureSteps);
 
 public slots:
     /**
@@ -81,31 +191,21 @@ private:
     double _finalTemperature;
     double _decreaseCoefficient;
     size_t _maxSameTemperatureSteps;
+    size_t _samplingSteps;
 
     // we need this value at various occasions
     size_t _targetCount;
 
-    std::vector<std::pair<double, size_t>> _optimal_tour;
-
-    /**
-     * performs a random two-opt move
-     * @param indices The array of the indices and associated times
-     * @return The index of the first moved element
-     */
-    size_t _randomTwoOptMove(std::vector<std::pair<double, size_t>>& indices) const;
+    MovingTargetTSP _optimalTour;
 
     /**
      * helper function to decided whether a new calculated energy is acceptable based on the given temperature
      */
-    bool _isEnergyAcceptable(const double& e, const double& new_e, const double& temperature) const;
+    static bool _isEnergyAcceptable(const double& e, const double& new_e, const double& temperature);
 
-    /**
-     * calculate the energy (aka "the duration") of a path and write the time of encounters in the path
-     * @param path The path
-     * @param startIndex All elements before this index are considered up-to-date (note: the origin path[0] does not have to be calculated)
-     * @return The duration for the complete path
-     */
-    double _calculatePathEnergy(std::vector<std::pair<double, size_t>>& path, size_t startIndex = 1) const;
+    static void _evaluateTime(MovingTargetTSP& mttsp);
+
+    void _calculateTemperature();
 };
 
 #endif // SIMULATED_ANNEALING_HH
