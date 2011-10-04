@@ -34,9 +34,9 @@ struct TargetData
 
 /* and a corresponding type using Qt types */
 
-#include <QString>
-#include <QVariant>
-#include <QMap>
+#include <QtCore/QString>
+#include <QtCore/QVariant>
+#include <QtCore/QMap>
 
 struct TargetDataQt
 {

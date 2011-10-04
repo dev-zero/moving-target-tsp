@@ -17,6 +17,19 @@
 #include "gui/main_window.hh"
 #include "gui/target_data.hh"
 
+MainWindow* mainWindowPtr;
+
+void RedirectLogToConsole(QtMsgType, const char* msg)
+{
+    std::cerr << msg << std::endl;
+
+    if (!mainWindowPtr)
+        return;
+
+    QMetaObject::invokeMethod(mainWindowPtr, "logToConsole", Qt::AutoConnection,
+            QGenericReturnArgument(), Q_ARG(QString, msg));
+}
+
 int main(int argc, char* argv[])
 {
     // register our custom type for Qt meta object usage before everything else
@@ -29,6 +42,9 @@ int main(int argc, char* argv[])
 
     QApplication app(argc, argv);
     MainWindow mainWindow;
+    mainWindowPtr = &mainWindow;
+
+    qInstallMsgHandler(RedirectLogToConsole);
 
     mainWindow.show();
     return app.exec();

@@ -257,7 +257,6 @@ void TargetManager::_loadCSV()
 
 void TargetManager::_addCSVTarget(const TargetDataQt& t)
 {
-    qDebug() << "TargetManager::_addCSVTarget";
     QString line(t.name);
 
     /* if the additional data contains a description,
@@ -435,8 +434,6 @@ void TargetManager::_addSelectedSimbadTarget(const QModelIndex& idx)
 
 void TargetManager::saveTargets()
 {
-    qDebug() << "saveTargets";
-
     QFile file(QFileDialog::getSaveFileName(this,
                 tr("Select file for saving the target list"),
                 QString(),
@@ -472,8 +469,6 @@ void TargetManager::saveTargets()
 
 void TargetManager::loadTargets()
 {
-    qDebug() << "loadTargets";
-
     removeAllTargets();
 
     QFile file(QFileDialog::getOpenFileName(this,
@@ -520,8 +515,6 @@ void TargetManager::loadTargets()
         in >> position[0] >> position[1] >> position[2];
         in >> velocity[0] >> velocity[1] >> velocity[2];
         in >> t_data;
-
-        qDebug() << "found target with name " << name << " in the stream";
 
         TargetDataQt t(position, velocity, name);
         t.data = t_data;

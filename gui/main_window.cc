@@ -91,7 +91,6 @@ void MainWindow::logToConsole(const QString& text)
 
 void MainWindow::_updateNumberOfTargets(int number)
 {
-    qDebug() << "updating number of targets: " << number;
     _ui->targetsTotal->setText(QLocale().toString(number));
     if (number > 0)
         _ui->computationCommand->setEnabled(true);
@@ -102,7 +101,7 @@ void MainWindow::_updateNumberOfTargets(int number)
 void MainWindow::_addTargetObject(QStandardItem* item)
 {
     TargetDataQt t(item->data(Qt::UserRole + 1).value<TargetDataQt>());
-    qDebug() << "adding rendering target for target " << t.name;
+//    qDebug() << "adding rendering target for target " << t.name;
     unsigned int idx(_ui->renderingWidget->addTarget(t));
     _ui->renderingWidget->enableTarget(idx);
     item->setData(QVariant::fromValue(idx), Qt::UserRole + 2);
@@ -203,6 +202,7 @@ void MainWindow::_displayPath(const QList<std::array<double,3>>& list, double ti
     const double internalTime(time*sqrt(1.0-((velocity*velocity)/(physical_constants::c*physical_constants::c))));
     _ui->totalInternalTime->setText(QLocale().toString(internalTime) + " years");
     _ui->totalLength->setText(QLocale().toString(length) + " parsec");
+    qDebug() << "time:" << time << ", traveller time:" << internalTime << ", total length:" << length;
 }
 
 void MainWindow::_changeMethodType(const QString& type)
