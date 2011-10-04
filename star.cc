@@ -128,17 +128,8 @@ osg::ref_ptr<osg::Node> createStar(const osg::Vec3f& position, const double& rad
     return sunBillboard;
 }
 
-void addStarToRoot(
-        osg::Group* root,
-        double x, double y, double z,
-        double r,
-        osg::Vec4 color)
+osg::ref_ptr<osg::Geode> createSimpleStar(const double& x, const double& y, const double& z, const double& r, const osg::Vec4& color)
 {
-#if 0
-    root->addChild(createStar(osg::Vec3f(x, y, z), r, color).get());
-    return
-#endif
-
     osg::Vec3 position(x, y, z);
 
     osg::ref_ptr<osg::Geode> solarSun(new osg::Geode);
@@ -151,6 +142,22 @@ void addStarToRoot(
     osg::ref_ptr<osg::Material> material(new osg::Material);
     material->setEmission( osg::Material::FRONT_AND_BACK, color );
     sunStateSet->setAttributeAndModes( material, osg::StateAttribute::ON ); // turn the light on
+
+    return solarSun;
+}
+
+void addStarToRoot(
+        osg::Group* root,
+        double x, double y, double z,
+        double r,
+        osg::Vec4 color)
+{
+#if 0
+    root->addChild(createStar(osg::Vec3f(x, y, z), r, color).get());
+    return
+#endif
+
+    osg::ref_ptr<osg::Geode> solarSun(createSimpleStar(x, y, z, r, color));
 
 #if 0
     osg::ref_ptr<osg::Billboard> sunBillboard(new osg::Billboard());

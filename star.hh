@@ -20,6 +20,12 @@ osg::ref_ptr<osg::Node> createStar(
     const double& radius,
     const osg::Vec4& color = osg::Vec4(1, 1, 0.5, 0.5));
 
+osg::ref_ptr<osg::Geode> createSimpleStar(
+        const double& x, const double& y, const double& z,
+        const double& r,
+        const osg::Vec4& color
+        );
+
 void addStarToRoot(
         osg::Group* root,
         double x, double y, double z,
