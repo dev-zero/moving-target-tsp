@@ -32,7 +32,6 @@ QT4_WRAP_UI(simplegui_UIS_H
     gui/simulated_annealing_cooling_schedule.ui)
 QT4_WRAP_CPP(viewer_widget_MOC_SRCS
     gui/viewer_widget.hh gui/main_window.hh)
-    #    gui/computation_thread.hh)
 
 QT4_WRAP_UI(target_manager_UIS_H
     gui/target_manager.ui)
@@ -65,7 +64,6 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 add_executable(moving-target-tsp moving-target-tsp.cc
     gui/main_window.cc
     gui/viewer_widget.cc
-    #    gui/computation_thread.cc
     gui/target_manager.cc
     gui/data_loader_csv.cc
     gui/data_loader_hipparcos.cc
