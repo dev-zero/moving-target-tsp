@@ -38,6 +38,7 @@ int main(int argc, char* argv[])
     double decreasecoefficient;
     unsigned int sametemperaturesteps;
     std::string filename;
+    double acceleration;
 
     try
     {
@@ -55,6 +56,7 @@ int main(int argc, char* argv[])
         finaltemperature = o.temperature();
         decreasecoefficient = o.coefficient();
         sametemperaturesteps = o.sametemperature();
+        acceleration = o.acceleration();
 
         if (o.file().empty())
         {
@@ -132,11 +134,12 @@ int main(int argc, char* argv[])
     sim.evaluate();
 
     std::cout << "final solution:" << std::endl;
-    std::cout << std::setw(12) << "time (y)" << std::setw(16) << "name" << std::setw(14) << "distance (pc)" << std::endl;
+    std::cout << std::setw(12) << "time (y)" << std::setw(16) << "name" << std::setw(14) << "distance (pc)" << std::setw(16) << "proper-time (y)" << std::endl;
     std::cout << std::endl;
 
     std::pair<double, size_t> previous(std::make_pair(0.0, rowCount));
     double totalDistance(0.0);
+    double totalProperTime(0.0);
 
     for (auto p : sim.getSolution())
     {
@@ -145,15 +148,25 @@ int main(int argc, char* argv[])
         const TargetDataQt &t2(targets.at(p.second)), &t1(targets.at(previous.second));
         distance = norm(t2.position + p.first*t2.velocity - (t1.position + previous.first*t1.velocity));
 
-        std::cout << std::setw(12) << p.first << std::setw(16) << "\"" + targets.at(p.second).name.toStdString() + "\"" << std::setw(14) << distance << std::endl;
+        double distanceInLY(distance * 3.261563777);
+        double properTime(2.0 * acosh(1 + acceleration*distanceInLY/2.0) / acceleration);
+
+        std::cout
+            << std::setw(12) << p.first
+            << std::setw(16) << "\"" + targets.at(p.second).name.toStdString() + "\""
+            << std::setw(14) << distance
+            << std::setw(16) << properTime
+            << std::endl;
+
         previous = p;
         totalDistance += distance;
+        totalProperTime += properTime;
     }
 
     std::cout << std::endl;
     std::cout << std::setfill('-') << std::setw(12) << "" << std::setw(16) << "TOTAL" << std::setw(14) << "" << std::endl;
     std::cout << std::setfill(' ');
-    std::cout << std::setw(12) << previous.first << std::setw(16) << " " << std::setw(14) << totalDistance << std::endl;
+    std::cout << std::setw(12) << previous.first << std::setw(16) << " " << std::setw(14) << totalDistance << std::setw(16) << totalProperTime << std::endl;
 
     return 0;
 }

@@ -40,5 +40,11 @@ class options
         "<sametemperaturesteps>",
         "The number of steps at the same temperature."
     };
+
+    double --acceleration | -a = 1
+    {
+        "<acceleration>",
+        "Calculate the proper time for the accelerated movement (using the same distances as calcualted for constant velocity)."
+    };
 };
 
