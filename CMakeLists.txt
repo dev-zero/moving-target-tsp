@@ -48,6 +48,9 @@ QT4_WRAP_CPP(computation_manager_MOC_SRCS
     gui/exhaustive_search_recursive.hh
     gui/simulated_annealing.hh)
 
+QT4_WRAP_CPP(simulated_annealing_MOC_SRCS
+    gui/simulated_annealing.hh)
+
 QT4_WRAP_CPP(qtsoap_MOC_SRCS
     3rdparty/qtsoap/qtsoap.h)
 
@@ -60,6 +63,14 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 #target_link_libraries(simplegui
 #    ${QT_LIBRARIES}
 #    -losg -losgViewer -losgQt)
+
+add_executable(moving-target-tsp-cli moving-target-tsp-cli.cc
+    utils/common_calculation_functions.cc
+    gui/simulated_annealing.cc
+    cli/moving-target-tsp.cxx
+    ${simulated_annealing_MOC_SRCS}
+    )
+target_link_libraries(moving-target-tsp-cli ${QT_LIBRARIES})
 
 add_executable(moving-target-tsp moving-target-tsp.cc
     gui/main_window.cc
@@ -85,8 +96,7 @@ add_executable(moving-target-tsp moving-target-tsp.cc
     star.cc)
 target_link_libraries(moving-target-tsp
     ${QT_LIBRARIES}
-    -losg -losgViewer -losgQt
-    -leoutils -leo -les -lga -lcma)
+    -losg -losgViewer -losgQt)
 
 add_executable(target_manager_TEST
     gui/target_manager_TEST.cc

@@ -1,0 +1,44 @@
+
+include <string>;
+
+class options
+{
+    bool --help {"Print usage information and exit."};
+
+    double --velocity | -v = 1
+    {
+        "<velocity>",
+        "Usage the specified coordinate velocity (in pc/y)."
+    };
+
+    std::string --file | -f
+    {
+        "<filename>",
+        "Path to a file containing the list of targets (*.mttsp)."
+    };
+
+    unsigned int --sampling | -s = 1000
+    {
+        "<samplingsteps>",
+        "Number of sampling steps to calculated the initial temperature for Simulated Annealing."
+    };
+
+    double --temperature | -t = 1
+    {
+        "<finaltemperature>",
+        "The final temperature threshold."
+    };
+
+    double --coefficient | -c = 1
+    {
+        "<decreasecoefficient>",
+        "The rate at which to lower the temperature."
+    };
+
+    unsigned int --sametemperature | -m = 1000
+    {
+        "<sametemperaturesteps>",
+        "The number of steps at the same temperature."
+    };
+};
+
