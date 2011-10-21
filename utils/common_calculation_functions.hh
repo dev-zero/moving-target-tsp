@@ -14,7 +14,7 @@
 #include <array>
 #include <cmath>
 
-#include "target.hh"
+#include "base/target.hh"
 
 inline std::array<double,3> operator*(const double& lhs, const std::array<double,3>& rhs)
 {

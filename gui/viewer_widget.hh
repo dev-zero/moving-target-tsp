@@ -15,8 +15,8 @@
 #include <osgViewer/CompositeViewer>
 #include <array>
 
-#include "star.hh"
-#include "target_data.hh"
+#include "gui/star.hh"
+#include "base/target_data.hh"
 
 /// forward declarations to reduce dependencies
 class QTimer;

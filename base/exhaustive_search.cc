@@ -7,7 +7,7 @@
  *
  */
 
-#include "gui/exhaustive_search.hh"
+#include "base/exhaustive_search.hh"
 #include "utils/common_calculation_functions.hh"
 
 #include <limits>

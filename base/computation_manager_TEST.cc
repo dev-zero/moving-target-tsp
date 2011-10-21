@@ -11,7 +11,7 @@
 
 #include <QtCore/QCoreApplication>
 
-#include "gui/computation_manager.hh"
+#include "base/computation_manager.hh"
 
 int main(int argc, char* argv[])
 {

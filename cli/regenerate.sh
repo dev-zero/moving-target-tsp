@@ -1,4 +1,9 @@
 #!/bin/bash
 
-/usr/bin/cli --generate-cxx exhaustive-search.cli 
-/usr/bin/cli --generate-cxx moving-target-tsp.cli 
+CLIFILES="exhaustive-search moving-target-tsp"
+
+for f in ${CLIFILES} ; do
+    /usr/bin/cli --generate-cxx "${f}.cli"
+    sed -i -e '/^\/\/$/a #pragma GCC diagnostic ignored "-Wshadow"' "${f}.cxx"
+done
+

@@ -19,13 +19,17 @@
 #include <osg/Geometry>
 #include <osg/Vec3>
 
-#include "target.hh"
+#include "base/target.hh"
 #include "sources/file_source.hh"
 #include "parser/csv.hh"
 #include "parser/hip2.hh"
-#include "cli/exhaustive-search.hxx"
-#include "star.hh"
+#include "gui/star.hh"
 #include "utils/common_calculation_functions.hh"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#include "cli/exhaustive-search.hxx"
+#pragma GCC diagnostic pop
 
 class MovingTargetTSP
 {

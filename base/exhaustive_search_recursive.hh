@@ -15,7 +15,7 @@
 
 #include <QtCore/QObject>
 
-#include "gui/target_data.hh"
+#include "base/target_data.hh"
 
 class ExhaustiveSearchRecursive :
     public QObject

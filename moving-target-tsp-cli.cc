@@ -7,11 +7,14 @@
  *
  */
 
-#include "gui/target_data.hh"
-#include "gui/simulated_annealing.hh"
+#include "base/target_data.hh"
+#include "base/simulated_annealing.hh"
 #include "utils/common_calculation_functions.hh"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include "cli/moving-target-tsp.hxx"
+#pragma GCC diagnostic pop
 
 #include <vector>
 #include <string>

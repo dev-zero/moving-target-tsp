@@ -14,7 +14,7 @@
 #include <QtCore/QString>
 #include <QtCore/QStringList>
 
-#include "gui/target_data.hh"
+#include "base/target_data.hh"
 
 /// forward declaration
 class QtSoapHttpTransport;

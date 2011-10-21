@@ -12,7 +12,7 @@
 #include <string>
 #include <array>
 
-#include "gui/data_loader_csv.hh"
+#include "base/data_loader_csv.hh"
 #include "sources/file_source.hh"
 
 void DataLoaderCSV::load(const QString& filename)

@@ -11,7 +11,7 @@
 #define EXHAUSTIVE_SEARCH_HH
 
 #include <QtCore/QList>
-#include "gui/target_data.hh"
+#include "base/target_data.hh"
 #include <vector>
 
 class ExhaustiveSearch

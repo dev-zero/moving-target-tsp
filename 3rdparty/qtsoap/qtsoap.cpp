@@ -42,6 +42,9 @@
 #include <QtNetwork/QNetworkRequest>
 #include <QtNetwork/QNetworkReply>
 
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+
 /*! \page qtsoap-overview.html
 
     \title Qt SOAP component

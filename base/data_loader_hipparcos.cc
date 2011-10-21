@@ -9,7 +9,7 @@
 
 #include <QDebug>
 
-#include "gui/data_loader_hipparcos.hh"
+#include "base/data_loader_hipparcos.hh"
 #include "sources/file_source.hh"
 #include "utils/common_calculation_functions.hh"
 #include "parser/hip.hh"

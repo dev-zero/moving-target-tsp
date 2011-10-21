@@ -7,7 +7,7 @@
  *
  */
 
-#include "gui/exhaustive_search_recursive.hh"
+#include "base/exhaustive_search_recursive.hh"
 #include "utils/common_calculation_functions.hh"
 
 ExhaustiveSearchRecursive::ExhaustiveSearchRecursive(QObject* p) :

@@ -8,9 +8,9 @@
  */
 
 
-#include "gui/computation_manager.hh"
-#include "gui/exhaustive_search_recursive.hh"
-#include "gui/simulated_annealing.hh"
+#include "base/computation_manager.hh"
+#include "base/exhaustive_search_recursive.hh"
+#include "base/simulated_annealing.hh"
 #include "utils/common_calculation_functions.hh"
 
 #include <QtCore/QThread>

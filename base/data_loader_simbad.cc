@@ -8,11 +8,10 @@
  */
 
 #include <QtXml/QDomDocument>
-//#include <QtGui/QMessageBox>
 
 #include "3rdparty/qtsoap/qtsoap.h"
 
-#include "gui/data_loader_simbad.hh"
+#include "base/data_loader_simbad.hh"
 #include "utils/common_calculation_functions.hh"
 
 DataLoaderSimbad::DataLoaderSimbad() :

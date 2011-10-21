@@ -17,7 +17,7 @@
 
 #include <vector>
 
-#include "gui/target_data.hh"
+#include "base/target_data.hh"
 
 /// forward declarations
 class QThread;

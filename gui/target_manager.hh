@@ -13,7 +13,7 @@
 #include <QtGui/QDialog>
 #include <QtCore/QModelIndex>
 
-#include "gui/target_data.hh"
+#include "base/target_data.hh"
 
 namespace Ui
 {

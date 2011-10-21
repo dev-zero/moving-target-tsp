@@ -12,7 +12,7 @@
 
 #include <QtGui/QSortFilterProxyModel>
 
-#include "gui/target_data.hh"
+#include "base/target_data.hh"
 
 class TargetDataFilterProxyModel :
     public QSortFilterProxyModel

@@ -18,9 +18,9 @@
 
 #include "gui/target_manager.hh"
 #include "sources/file_source.hh"
-#include "gui/data_loader_hipparcos.hh"
-#include "gui/data_loader_csv.hh"
-#include "gui/data_loader_simbad.hh"
+#include "base/data_loader_hipparcos.hh"
+#include "base/data_loader_csv.hh"
+#include "base/data_loader_simbad.hh"
 #include "gui/target_data_filter_proxy_model.hh"
 #include "utils/common_calculation_functions.hh"
 

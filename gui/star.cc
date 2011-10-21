@@ -21,7 +21,7 @@
 
 #include "star.hh"
 
-static const char* CORONA_BILLBOARD_IMAGE = "../corona.png";
+static const char* CORONA_BILLBOARD_IMAGE = "../data/corona.png";
 
 osg::ref_ptr<osg::Node> createStar(const osg::Vec3f& position, const double& radius, const osg::Vec4& color)
 {

@@ -10,11 +10,11 @@
 #ifndef MAIN_WINDOW_HH
 #define MAIN_WINDOW_HH
 
-#include <QMainWindow>
-#include <QItemSelection>
+#include <QtGui/QMainWindow>
+#include <QtGui/QItemSelection>
 #include <array>
 #include <tuple>
-#include "target_data.hh"
+#include "base/target_data.hh"
 
 /// forward declarations
 namespace Ui { class MainWindow; class SimulatedAnnealingDialog; }

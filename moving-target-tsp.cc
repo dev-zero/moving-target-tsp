@@ -15,7 +15,7 @@
 #include <osg/DisplaySettings>
 
 #include "gui/main_window.hh"
-#include "gui/target_data.hh"
+#include "base/target_data.hh"
 
 MainWindow* mainWindowPtr;
 

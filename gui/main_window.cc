@@ -9,15 +9,15 @@
 
 #include "main_window.hh"
 #include "gui/target_manager.hh"
-#include "gui/computation_manager.hh"
+#include "base/computation_manager.hh"
 #include "utils/common_calculation_functions.hh"
 
-#include <QFileDialog>
-#include <QStatusBar>
-#include <QMessageBox>
-#include <QStandardItemModel>
-#include <QLocale>
-#include <QDebug>
+#include <QtGui/QFileDialog>
+#include <QtGui/QStatusBar>
+#include <QtGui/QMessageBox>
+#include <QtGui/QStandardItemModel>
+#include <QtCore/QLocale>
+#include <QtCore/QDebug>
 
 // auto-generated
 #include "ui_simple.h"

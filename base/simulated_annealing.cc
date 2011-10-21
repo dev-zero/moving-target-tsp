@@ -7,7 +7,7 @@
  *
  */
 
-#include "gui/simulated_annealing.hh"
+#include "base/simulated_annealing.hh"
 #include "utils/common_calculation_functions.hh"
 
 #include <QtCore/QDebug>
