@@ -12,7 +12,7 @@
 
 #include <QtGui/QWidget>
 #include <QtCore/QList>
-#include <osgViewer/CompositeViewer>
+#include <osgViewer/Viewer>
 #include <array>
 
 #include "gui/star.hh"
@@ -31,7 +31,7 @@ namespace osgViewer
 }
 
 class ViewerWidget :
-    public QWidget, public osgViewer::CompositeViewer
+    public QWidget, public osgViewer::Viewer
 {
     Q_OBJECT
 
@@ -56,7 +56,6 @@ protected:
 private:
     osg::Switch* _root;
     osg::Group* _path;
-    osgViewer::View* _view;
 
     static const double STAR_RADIUS;
 };

@@ -40,9 +40,10 @@ ViewerWidget::ViewerWidget(QWidget* p) :
     _timer(new QTimer),
     _path(NULL)
 {
-    setThreadingModel(osgViewer::CompositeViewer::SingleThreaded);
+    setThreadingModel(osgViewer::Viewer::SingleThreaded);
 
     osg::DisplaySettings* ds = osg::DisplaySettings::instance().get();
+
     osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
     traits->windowName = "";
     traits->windowDecoration = false;
@@ -56,29 +57,26 @@ ViewerWidget::ViewerWidget(QWidget* p) :
     traits->sampleBuffers = ds->getMultiSamples();
     traits->samples = ds->getNumMultiSamples();
 
-    osg::ref_ptr<osg::Camera> camera = new osg::Camera;
-    camera->setGraphicsContext( new osgQt::GraphicsWindowQt(traits.get()) );
+    osgQt::GraphicsWindowQt* gw(new osgQt::GraphicsWindowQt(traits.get()));
 
+    osg::ref_ptr<osg::Camera> camera = new osg::Camera;
+    camera->setGraphicsContext(gw);
     camera->setClearColor( osg::Vec4(0.2, 0.2, 0.6, 1.0) );
     camera->setViewport( new osg::Viewport(0, 0, traits->width, traits->height) );
     camera->setProjectionMatrixAsPerspective(30.0f, static_cast<double>(traits->width)/static_cast<double>(traits->height), 1.0f, 10000.0f );
 
-    _view = new osgViewer::View;
     _root = new osg::Switch;
     _root->setNewChildDefaultValue(false); // add children hidden by default
 
-    _view->setCamera( camera );
-    addView( _view );
+    setCamera(camera);
+    addEventHandler(new osgViewer::StatsHandler);
+    setCameraManipulator(new osgGA::TrackballManipulator);
+    setSceneData(_root);
 
-    _view->addEventHandler( new osgViewer::StatsHandler );
-    _view->setCameraManipulator( new osgGA::TrackballManipulator );
-    _view->setSceneData(_root);
-
-    osgQt::GraphicsWindowQt* gw = dynamic_cast<osgQt::GraphicsWindowQt*>( camera->getGraphicsContext() );
-
-    QVBoxLayout *verticalLayout(new QVBoxLayout);
     QWidget* graphWidget(gw->getGraphWidget());
     graphWidget->setObjectName("graphwidget");
+
+    QVBoxLayout *verticalLayout(new QVBoxLayout);
     verticalLayout->addWidget(graphWidget);
     setLayout(verticalLayout);
 
