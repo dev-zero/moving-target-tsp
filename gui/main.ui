@@ -41,7 +41,6 @@
     </property>
     <addaction name="actionShowSetup"/>
     <addaction name="actionShowConsole"/>
-    <addaction name="actionShowTargetDetails"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">

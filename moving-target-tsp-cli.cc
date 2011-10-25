@@ -20,6 +20,7 @@
 #include <string>
 #include <iostream>
 #include <iomanip>
+#include <time.h>
 
 #include <QtCore/QFile>
 
@@ -35,6 +36,9 @@ void usage()
 
 int main(int argc, char* argv[])
 {
+    // initialize random number generator
+    srand(time(NULL));
+
     double v;
     unsigned int samplingsteps;
     double finaltemperature;

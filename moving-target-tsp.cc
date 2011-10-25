@@ -12,6 +12,7 @@
 #include <tuple>
 #include <array>
 #include <iostream>
+#include <time.h>
 
 #include <osg/DisplaySettings>
 
@@ -33,6 +34,9 @@ void RedirectLogToConsole(QtMsgType, const char* msg)
 
 int main(int argc, char* argv[])
 {
+    // initialize random number generator
+    srand(time(NULL));
+
     // register our custom type for Qt meta object usage before everything else
     qRegisterMetaType<TargetDataQt>("TargetDataQt");
     qRegisterMetaType<QList<std::array<double,3>>>("QList<std::array<double,3>>");

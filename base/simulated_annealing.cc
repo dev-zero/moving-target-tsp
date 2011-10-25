@@ -13,10 +13,7 @@
 #include <QtCore/QDebug>
 
 #include <limits>
-#include <algorithm>
 #include <numeric>
-#include <cstdlib>
-#include <cassert>
 
 SimulatedAnnealing::SimulatedAnnealing(QObject* p) :
     QObject(p),
@@ -76,7 +73,6 @@ public:
 
     void update(double& temperature, size_t seek = 1)
     {
-//        qDebug() << "CoolingSchedule::update for temperature=" << temperature << ", seek=" << seek;
         _currentStep += seek;
 
         if (_currentStep >= _maxSameTemperatureSteps)
@@ -108,6 +104,7 @@ void SimulatedAnnealing::_calculateTemperature()
 
     // collect samples
     MovingTargetTSP mttsp(_targets, _origin, _startTime, _velocity);
+    size_t samplingRuns(0);
     for (size_t collectedSamples(0); collectedSamples < _samplingSteps;)
     {
         move(mttsp);
@@ -117,8 +114,16 @@ void SimulatedAnnealing::_calculateTemperature()
             results[collectedSamples] = mttsp.totalTime();
             ++collectedSamples;
         }
+
+        if (samplingRuns++ > _samplingSteps*100)
+        {
+            qDebug() << "could not generate requested number of samples in" << _samplingSteps*100 << "steps";
+            _abort = true;
+        }
+
         if (_abort)
             return;
+
     }
     double mean = std::accumulate(results.begin(), results.end(), 0.0) / results.size();
 
@@ -141,11 +146,16 @@ void SimulatedAnnealing::evaluate()
     _optimalTour = MovingTargetTSP();
 
     if (_samplingSteps > 0)
+    {
         _calculateTemperature();
+        if (_abort)
+        {
+            qDebug() << "abort while calculating the initial temperature";
+            emit finished();
+            return;
+        }
+    }
     
-    if (_abort)
-        return;
-
     qDebug() << "starting new SA evaluation with the following parameters:";
     qDebug() << "  initial temperature: " << _initialTemperature;
     qDebug() << "  decrease coefficient:" << _decreaseCoefficient;
