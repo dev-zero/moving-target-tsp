@@ -81,6 +81,7 @@ if(CLI)
     add_executable(moving-target-tsp-cli moving-target-tsp-cli.cc
         utils/common_calculation_functions.cc
         base/simulated_annealing.cc
+        base/moving_target_tsp.cc
         moving-target-tsp.cxx
         ${simulated_annealing_MOC_SRCS}
         )
@@ -98,6 +99,7 @@ add_executable(moving-target-tsp moving-target-tsp.cc
     base/computation_manager.cc
     base/exhaustive_search_recursive.cc
     base/simulated_annealing.cc
+    base/moving_target_tsp.cc
     ${maingui_UIS_H} ${viewer_widget_MOC_SRCS}
     ${target_manager_UIS_H} ${target_manager_MOC_SRCS} ${target_manager_RCS}
     ${computation_manager_MOC_SRCS}
@@ -134,6 +136,7 @@ add_executable(computation_manager_TEST
     base/computation_manager.cc
     base/exhaustive_search_recursive.cc
     base/simulated_annealing.cc
+    base/moving_target_tsp.cc
     utils/common_calculation_functions.cc
     ${computation_manager_MOC_SRCS})
 
