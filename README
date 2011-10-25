@@ -1,0 +1,47 @@
+Moving Target Travelling Salesman Problem Simulation
+
+Requirements
+============
+
+To build the application you need:
+
+- cmake
+- g++-4.6.x
+- Qt-4.7.x
+- OpenSceneGraph-3.0.x
+
+Optional dependencies
+---------------------
+
+- CLI from http://www.codesynthesis.com/projects/cli/ to build the command-line applications
+- Boost to build the initial exhaustive search application (integrated in the moving-target-tsp app by now)
+
+Build Instructions
+==================
+
+    mkdir build
+    cd build/
+    cmake ..
+    make
+
+Run
+===
+
+Running the application is quiet simple:
+
+    ./moving-target-tsp
+
+everything else can be done using the GUI.
+
+The target manager can also be run seperately:
+
+    ./target_manager_TEST
+
+This way you can put together a list of targets and save it in the application specific format
+to be able to load it using the moving-target-tsp-cli command line application:
+
+The CLI application prints out proper instructions on how to call it:
+
+    ./moving-target-tsp-cli --help
+
+
