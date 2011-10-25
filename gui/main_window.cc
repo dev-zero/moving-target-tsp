@@ -20,7 +20,7 @@
 #include <QtCore/QDebug>
 
 // auto-generated
-#include "ui_simple.h"
+#include "ui_main.h"
 #include "ui_simulated_annealing_cooling_schedule.h"
 
 /*

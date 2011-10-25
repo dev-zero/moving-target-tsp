@@ -13,7 +13,10 @@
 #include <QtCore/QDebug>
 
 #include <limits>
+#include <algorithm>
+#include <numeric>
 #include <cstdlib>
+#include <cassert>
 
 SimulatedAnnealing::SimulatedAnnealing(QObject* p) :
     QObject(p),

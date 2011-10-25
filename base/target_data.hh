@@ -13,6 +13,8 @@
 #include <array>
 #include <unordered_map>
 #include <string>
+
+#ifdef HAVE_BOOST
 #include <boost/variant.hpp>
 
 struct TargetData
@@ -31,6 +33,7 @@ struct TargetData
     {
     }
 };
+#endif
 
 /* and a corresponding type using Qt types */
 

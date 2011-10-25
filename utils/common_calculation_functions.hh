@@ -10,11 +10,13 @@
 #ifndef COMMON_CALCULATION_FUNCTIONS_HH
 #define COMMON_CALCULATION_FUNCTIONS_HH
 
+#ifdef HAVE_BOOST
 #include <boost/numeric/ublas/vector.hpp>
+#include "base/target.hh"
+#endif
+
 #include <array>
 #include <cmath>
-
-#include "base/target.hh"
 
 inline std::array<double,3> operator*(const double& lhs, const std::array<double,3>& rhs)
 {
@@ -45,20 +47,24 @@ inline double norm(const std::array<double,3>& v)
     return sqrt(inner_prod(v, v));
 }
 
+#ifdef HAVE_BOOST
+
 /* calculate the time duration to go from s_position to e_position which moves with e_velocity when travelling with velocity v */
 double calculate_time(const double& v,
         const boost::numeric::ublas::vector<double>& s_position,
         const boost::numeric::ublas::vector<double>& e_position,
         const boost::numeric::ublas::vector<double>& e_velocity);
 
+/* calculate the distance between two targets
+ * and update the shortest_distance if the distance is shorter than shortest_distance */
+void calculate_distance_and_direct_travelling_time(double& shortest_distance, double v, const Target& a, const Target& b);
+
+#endif
+
 double calculate_time(const double& v,
         const std::array<double,3>& s_position,
         const std::array<double,3>& e_position,
         const std::array<double,3>& e_velocity);
-
-/* calculate the distance between two targets
- * and update the shortest_distance if the distance is shorter than shortest_distance */
-void calculate_distance_and_direct_travelling_time(double& shortest_distance, double v, const Target& a, const Target& b);
 
 /* convert from equatorial coordinates delta/alpha (declination/right ascension) to galactic coordinates b/l
  *

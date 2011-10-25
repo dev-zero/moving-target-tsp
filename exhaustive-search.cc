@@ -28,7 +28,7 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
-#include "cli/exhaustive-search.hxx"
+#include "exhaustive-search.hxx"
 #pragma GCC diagnostic pop
 
 class MovingTargetTSP

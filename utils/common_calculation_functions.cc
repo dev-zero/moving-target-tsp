@@ -7,13 +7,17 @@
  *
  */
 
-#include <cmath>
 #include "common_calculation_functions.hh"
 
+#include <cmath>
+#include <limits>
+
+#ifdef HAVE_BOOST
 namespace ublas
 {
     using namespace boost::numeric::ublas;
 }
+#endif
 
 double _calc_min_non_neg_root(const double& a, const double& b, const double& c)
 {
@@ -44,21 +48,13 @@ double _calc_min_non_neg_root(const double& a, const double& b, const double& c)
     return std::numeric_limits<double>::infinity();
 }
 
+#ifdef HAVE_BOOST
 /* calculate the time duration to go from s_position to e_position which moves with e_velocity when travelling with velocity v */
 double calculate_time(const double& v, const ublas::vector<double>& s_position, const ublas::vector<double>& e_position, const ublas::vector<double>& e_velocity)
 {
     double a(v*v - ublas::inner_prod(e_velocity, e_velocity));
     double b(-2 * ublas::inner_prod(e_position - s_position, e_velocity));
     double c(-ublas::inner_prod(e_position - s_position, e_position - s_position));
-    return _calc_min_non_neg_root(a, b, c);
-}
-
-/* calculate the time duration to go from s_position to e_position which moves with e_velocity when travelling with velocity v */
-double calculate_time(const double& v, const std::array<double,3>& s_position, const std::array<double,3>& e_position, const std::array<double,3>& e_velocity)
-{
-    double a(v*v - inner_prod(e_velocity, e_velocity));
-    double b(-2 * inner_prod(e_position - s_position, e_velocity));
-    double c(-inner_prod(e_position - s_position, e_position - s_position));
     return _calc_min_non_neg_root(a, b, c);
 }
 
@@ -70,6 +66,17 @@ void calculate_distance_and_direct_travelling_time(double& shortest_distance, do
 
     if ( (distance > 0.0) && (distance < shortest_distance) ) // ignore the distance if it is 0 (to make sure we have a positiv radius)
         shortest_distance = distance;
+}
+
+#endif
+
+/* calculate the time duration to go from s_position to e_position which moves with e_velocity when travelling with velocity v */
+double calculate_time(const double& v, const std::array<double,3>& s_position, const std::array<double,3>& e_position, const std::array<double,3>& e_velocity)
+{
+    double a(v*v - inner_prod(e_velocity, e_velocity));
+    double b(-2 * inner_prod(e_position - s_position, e_velocity));
+    double c(-inner_prod(e_position - s_position, e_position - s_position));
+    return _calc_min_non_neg_root(a, b, c);
 }
 
 const static double DEG2RAD(M_PI/180.0);

@@ -13,7 +13,7 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
-#include "cli/moving-target-tsp.hxx"
+#include "moving-target-tsp.hxx"
 #pragma GCC diagnostic pop
 
 #include <vector>

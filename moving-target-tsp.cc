@@ -11,6 +11,7 @@
 
 #include <tuple>
 #include <array>
+#include <iostream>
 
 #include <osg/DisplaySettings>
 

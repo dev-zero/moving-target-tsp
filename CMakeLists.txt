@@ -9,23 +9,38 @@ find_package(Qt4 REQUIRED)
 set(QT_USE_QTGUI TRUE)
 set(QT_USE_QTOPENGL TRUE)
 set(QT_USE_QTWEBKIT TRUE)
+set(QT_USE_QTXML TRUE)
 include(${QT_USE_FILE})
+
+find_package(Boost 1.46.0)
+find_program(CLI cli)
 
 # mark all 3rdparty headers as system headers to disable warnings generated
 # for them by the compiler
 include_directories(SYSTEM ${QT_INCLUDES})
 
-add_executable(exhaustive-search exhaustive-search.cc
-    cli/exhaustive-search.cxx parser/csv.cc parser/hip2.cc
-    utils/common_calculation_functions.cc gui/star.cc)
-target_link_libraries(exhaustive-search
-    -losg -losgViewer)
+if(Boost_FOUND AND CLI)
+    add_definitions(-DHAVE_BOOST)
+    include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+
+    add_custom_command(OUTPUT exhaustive-search.cxx
+        COMMAND ${CLI} --generate-cxx ${CMAKE_CURRENT_SOURCE_DIR}/cli/exhaustive-search.cli
+        COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/cli/patch-source.sh" exhaustive-search
+        DEPENDS ${CLI} cli/exhaustive-search.cli
+        )
+
+    add_executable(exhaustive-search exhaustive-search.cc
+        exhaustive-search.cxx parser/csv.cc parser/hip2.cc
+        utils/common_calculation_functions.cc gui/star.cc)
+    target_link_libraries(exhaustive-search
+        -losg -losgViewer -losgDB)
+endif()
 
 add_executable(parser_hip2_TEST parser/hip2.cc parser/hip2_TEST.cc)
 target_link_libraries(parser_hip2_TEST -lgtest -lpthread)
 
 add_executable(star_TEST gui/star.cc gui/star_TEST.cc)
-target_link_libraries(star_TEST -losg -losgViewer)
+target_link_libraries(star_TEST -losg -losgViewer -losgDB)
 
 QT4_WRAP_UI(maingui_UIS_H
     gui/main.ui
@@ -56,13 +71,21 @@ QT4_WRAP_CPP(qtsoap_MOC_SRCS
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 
-add_executable(moving-target-tsp-cli moving-target-tsp-cli.cc
-    utils/common_calculation_functions.cc
-    base/simulated_annealing.cc
-    cli/moving-target-tsp.cxx
-    ${simulated_annealing_MOC_SRCS}
-    )
-target_link_libraries(moving-target-tsp-cli ${QT_LIBRARIES})
+if(CLI)
+    add_custom_command(OUTPUT moving-target-tsp.cxx
+        COMMAND ${CLI} --generate-cxx "${CMAKE_CURRENT_SOURCE_DIR}/cli/moving-target-tsp.cli"
+        COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/cli/patch-source.sh" moving-target-tsp
+        DEPENDS ${CLI} cli/moving-target-tsp.cli
+        )
+
+    add_executable(moving-target-tsp-cli moving-target-tsp-cli.cc
+        utils/common_calculation_functions.cc
+        base/simulated_annealing.cc
+        moving-target-tsp.cxx
+        ${simulated_annealing_MOC_SRCS}
+        )
+    target_link_libraries(moving-target-tsp-cli ${QT_LIBRARIES})
+endif()
 
 add_executable(moving-target-tsp moving-target-tsp.cc
     gui/main_window.cc
@@ -87,7 +110,7 @@ add_executable(moving-target-tsp moving-target-tsp.cc
     gui/star.cc)
 target_link_libraries(moving-target-tsp
     ${QT_LIBRARIES}
-    -losg -losgViewer -losgQt)
+    -losg -losgViewer -losgQt -losgGA -losgDB)
 
 add_executable(target_manager_TEST
     gui/target_manager_TEST.cc

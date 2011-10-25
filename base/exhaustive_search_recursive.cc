@@ -10,6 +10,9 @@
 #include "base/exhaustive_search_recursive.hh"
 #include "utils/common_calculation_functions.hh"
 
+#include <limits>
+#include <algorithm>
+
 ExhaustiveSearchRecursive::ExhaustiveSearchRecursive(QObject* p) :
     QObject(p),
     _abort(true),
