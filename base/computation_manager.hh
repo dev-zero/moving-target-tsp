@@ -24,6 +24,9 @@ class QThread;
 class ExhaustiveSearchRecursive;
 class SimulatedAnnealing;
 
+/**
+ * This is in principal the Facade pattern for the different computation algorithms
+ */
 class ComputationManager :
     public QObject
 {

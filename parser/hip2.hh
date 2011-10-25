@@ -22,39 +22,53 @@ struct InvalidLine :
 };
 
 
-/* please note: this is not a full HIP2 data parser,
- * only what I needed for this work */
-
+/**
+ * Parser for Hipparcos2-style parser
+ * please note: this is not a full HIP2 data parser,
+ * only what I needed for this work
+ */
 struct Parser
 {
-    /* data is:
+    /**
+     * data is:
      * HIP identifier, solution type, right ascension, declination, parallax, parallax error, proper motion in right ascension, proper motion in declination, colour index */
     typedef std::function<bool (int, int, double, double, double, double, double, double, double)> appender_func;
 
+    /**
+     * parse the given data and call func for every item in the stream
+     */
     void operator()(const std::string& text, appender_func func);
 
-    /* spec:
-     * HIP identifier,
-     * solution type new reduction,
-     * solution type old reduction,
-     * number of components
-     * right ascension,
-     * declination,
-     * parallax,
-     * proper motion in right ascension,
-     * proper motion in declination,
-     * formal error on RArad
-     * formal error on DErad
-     * formal error on parallax,
-     * colour index,
-     * formal error on colour index,
-     * V-I colour index,
+    /**
+     * spec:
+     * - HIP identifier,
+     * - solution type new reduction,
+     * - solution type old reduction,
+     * - number of components
+     * - right ascension,
+     * - declination,
+     * - parallax,
+     * - proper motion in right ascension,
+     * - proper motion in declination,
+     * - formal error on RArad
+     * - formal error on DErad
+     * - formal error on parallax,
+     * - colour index,
+     * - formal error on colour index,
+     * - V-I colour index,
      */
     typedef std::tuple<int, int, short, short, double, double, double, double, double, double, double, double, double, double, double> data;
     typedef std::function<bool (const data&)> appender_tuple_func;
+
+    /**
+     * parse the given data and call func for every item in the stream
+     */
     void operator()(const std::string& text, appender_tuple_func func);
 };
 
+/**
+ * enumerator for the fields to lessen the impact on additions/changes
+ */
 enum fields
 {
     ID = 0,
@@ -74,6 +88,9 @@ enum fields
     VI_COLOUR_INDEX
 };
 
+/**
+ * description of the fields corresponding to the order from above to be used in the GUI
+ */
 const char field_descriptions[][40] = {
     "Hipparcos identifier",
     "Solution type new reduction",

@@ -17,18 +17,31 @@
 
 namespace HIP
 {
+/**
+ * Thrown when an invalid line is encountered
+ */
 struct InvalidLine :
     public std::exception
 {
 };
 
+/**
+ * Parser for Hipparchos-style data files
+ */
 struct Parser
 {
     typedef std::function<bool (int, char, std::string, std::string, double, short, char, double, double, char, double, double, double, double, double, double, double, double, double, double, double, double, double, double, double, double, double, double, int, double, double, double, double, double, char, double, double, char, double, double, char, char, double, double, double, int, char, double, double, double, char, char, char, std::string, char, short, short, char, char, char, std::string, int, double, double, double, double, char, char, char, int, std::string, std::string, std::string, double, std::string, char)> appender_func;
+    /**
+     * Parse the data given in text and call func for every item
+     */
     void operator()(const std::string& text, appender_func func);
 
     typedef std::tuple<int, char, std::string, std::string, double, short, char, double, double, char, double, double, double, double, double, double, double, double, double, double, double, double, double, double, double, double, double, double, int, double, double, double, double, double, char, double, double, char, double, double, char, char, double, double, double, int, char, double, double, double, char, char, char, std::string, char, short, short, char, char, char, std::string, int, double, double, double, double, char, char, char, int, std::string, std::string, std::string, double, std::string, char> data;
     typedef std::function<bool (const data&)> appender_tuple_func;
+
+    /**
+     * Parse the data given in text and call func for every item
+     */
     void operator()(const std::string& text, appender_tuple_func func);
 };
 

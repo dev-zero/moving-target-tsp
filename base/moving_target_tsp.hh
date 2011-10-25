@@ -17,6 +17,9 @@
 
 template<typename MoveT> class MovingTargetTSPMove;
 
+/**
+ * encapsulates the Moving-Target TSP problem
+ */
 class MovingTargetTSP
 {
 public:
