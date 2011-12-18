@@ -34,6 +34,19 @@ void usage()
     options::print_usage(std::cerr);
 }
 
+void printTableHeader()
+{
+    std::cout << std::endl;
+    std::cout
+        << std::setw(12) << "time (y)"
+        << std::setw(16) << "name"
+        << std::setw(14) << "distance (pc)"
+        << std::setw(16) << "proper-time (y)"
+        << std::setw(16) << "coordinate-time (y)"
+        << std::setw(16) << "proper-velocity"
+        << std::endl;
+    std::cout << std::endl;
+}
 int main(int argc, char* argv[])
 {
     // initialize random number generator
@@ -141,39 +154,56 @@ int main(int argc, char* argv[])
     sim.evaluate();
 
     std::cout << "final solution:" << std::endl;
-    std::cout << std::setw(12) << "time (y)" << std::setw(16) << "name" << std::setw(14) << "distance (pc)" << std::setw(16) << "proper-time (y)" << std::endl;
-    std::cout << std::endl;
+    printTableHeader();
 
     std::pair<double, size_t> previous(std::make_pair(0.0, rowCount));
     double totalDistance(0.0);
     double totalProperTime(0.0);
+    double totalCoordinateTime(0.0);
+    size_t count(0);
 
     for (auto p : sim.getSolution())
     {
+        if (count++ % 100 == 0)
+            printTableHeader();
         double distance(0.0);
 
         const TargetDataQt &t2(targets.at(p.second)), &t1(targets.at(previous.second));
         distance = norm(t2.position + p.first*t2.velocity - (t1.position + previous.first*t1.velocity));
 
         double distanceInLY(distance * 3.261563777);
-        double properTime(2.0 * acosh(1 + acceleration*distanceInLY/2.0) / acceleration);
+        double properTime(acosh(1 + acceleration*distanceInLY/2.0) / acceleration); // properTime for half the distance (accel=decel)
+        double coordinateTime(sinh(acceleration*properTime)/acceleration); // coordinateTime for half the distance
+        double properVelocity(coordinateTime*acceleration);
+
+        properTime *= 2.0; // 2-times half the distance
+        coordinateTime *= 2.0; // 2-times half the distance
 
         std::cout
             << std::setw(12) << p.first
             << std::setw(16) << "\"" + targets.at(p.second).name.toStdString() + "\""
             << std::setw(14) << distance
             << std::setw(16) << properTime
+            << std::setw(16) << coordinateTime
+            << std::setw(16) << properVelocity
             << std::endl;
 
         previous = p;
         totalDistance += distance;
         totalProperTime += properTime;
+        totalCoordinateTime += coordinateTime;
     }
 
     std::cout << std::endl;
-    std::cout << std::setfill('-') << std::setw(12) << "" << std::setw(16) << "TOTAL" << std::setw(14) << "" << std::endl;
+    std::cout << std::setfill('-') << std::setw(12) << "" << std::setw(16) << "TOTAL" << std::setw(30) << "" << std::endl;
     std::cout << std::setfill(' ');
-    std::cout << std::setw(12) << previous.first << std::setw(16) << " " << std::setw(14) << totalDistance << std::setw(16) << totalProperTime << std::endl;
+    std::cout
+        << std::setw(12) << previous.first
+        << std::setw(16) << " "
+        << std::setw(14) << totalDistance
+        << std::setw(16) << totalProperTime
+        << std::setw(16) << totalCoordinateTime
+        << std::endl;
 
     return 0;
 }
