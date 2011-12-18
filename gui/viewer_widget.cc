@@ -122,6 +122,7 @@ void ViewerWidget::displayPath(const QList<std::array<double,3>>& list)
 void ViewerWidget::clear()
 {
     _root->removeChildren(0, _root->getNumChildren());
+    _path = NULL;
 }
 void ViewerWidget::enableTarget(unsigned int idx)
 {
