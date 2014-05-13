@@ -81,7 +81,7 @@ ViewerWidget::ViewerWidget(QWidget* p) :
     setLayout(verticalLayout);
 
     connect( _timer, SIGNAL(timeout()), this, SLOT(update()) );
-    _timer->start(5);
+    _timer->start(40);
 }
 
 void ViewerWidget::paintEvent(QPaintEvent*)
