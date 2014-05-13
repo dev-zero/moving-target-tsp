@@ -80,7 +80,7 @@ TEST_F(HIP2ParserTest, LoadCompleteFile)
 {
     unsigned int runs(0);
 
-    FileSource<HIP2::Parser> file("../../data/hip2.dat");
+    FileSource<HIP2::Parser> file("../data/hip2.dat");
     
     file.load(std::bind(&counter_appender_func,
                 std::placeholders::_1,
